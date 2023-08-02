@@ -1,0 +1,15 @@
+{
+  "name": "photos-api",
+  "version": "1.0.0",
+  "description": "API that manages users and their photos",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "npm test"
+  },
+  "author": "Oskar Marciniak",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^20.4.6"
+  }
+}
