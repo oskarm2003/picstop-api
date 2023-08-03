@@ -1,9 +1,11 @@
 import http, { IncomingMessage, ServerResponse } from 'http'
+import userController from './controller/user/user_controller';
+import ColorConsole from './utils/color_console';
+
 const PORT = 3000
+export const cc = new ColorConsole()
 
 http.createServer((req: IncomingMessage, res: ServerResponse) => {
-
-    console.log(req.url);
 
     //url undefined
     if (req.url === undefined) {
@@ -11,9 +13,9 @@ http.createServer((req: IncomingMessage, res: ServerResponse) => {
         return
     }
 
-
+    //forward to user controller
     if (req.url?.startsWith('/user')) {
-
+        userController(req, res)
     }
 
 })
