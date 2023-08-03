@@ -8,13 +8,13 @@ output: promise<JSON>
 # color_console
 allows to log colorful logs and turn them on and off globally
 
-ColorConsole class object methods:
-.log(text) -> display white text
-.warn(text) -> displays yellow text
-.error(text) -> displays red text (no app stop)
-.debug(text) -> displays blue text
-.success(text) -> display green text
+ColorConsole class object methods:  
+.log(text) -> display white text  
+.warn(text) -> displays yellow text  
+.error(text) -> displays red text (no app stop)  
+.debug(text) -> displays blue text  
+.success(text) -> display green text  
 
 ColorConsole variables:
-.display: boolean -> false to omit showing all logs from the object
+.display: boolean -> false to omit showing all logs from the object  
 .omit: ['log','error','warn','success','debug'] -> the logs in the array will be ommited globally
