@@ -3,7 +3,7 @@ User Controller handles the requests that urls' start with '/user'.
 
 
 # GET /user
-Displays all users profiles (no password)
+Returns all users profiles (no password)
 
 # POST /user/new
 Creates new user

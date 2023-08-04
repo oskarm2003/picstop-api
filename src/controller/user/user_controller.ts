@@ -5,8 +5,12 @@ import { cc } from "../../index";
 
 const userController = async (req: IncomingMessage, res: ServerResponse) => {
 
+    cc.notify('user branch activated')
+
     //get users data
     if (req.url === '/user' && req.method === 'GET') {
+
+        cc.notify('users data requested')
 
         const output = get_all_users()
         res.end(output)
@@ -17,8 +21,10 @@ const userController = async (req: IncomingMessage, res: ServerResponse) => {
     //register a user
     if (req.url === '/user/new' && req.method == 'POST') {
 
-        cc.warn('user')
+        cc.notify('user register attempt')
+
         const data = await parseRequestData(req)
+        cc.log(data)
 
     }
 

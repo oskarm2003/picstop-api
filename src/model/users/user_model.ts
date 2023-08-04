@@ -1,4 +1,4 @@
-type t_user = {}
+type t_user = { username: string, email: string, password?: string }
 
 //get all users' data from the database
 function get_all_users(): Array<t_user> {
@@ -9,4 +9,11 @@ function get_all_users(): Array<t_user> {
 
 }
 
-export { get_all_users }
+function create_user(): boolean {
+
+    //TODO: register handling
+    return false
+
+}
+
+export { get_all_users, create_user }
