@@ -3,7 +3,7 @@ class ColorConsole {
     private colors
     omit: Array<'log' | 'warn' | 'error' | 'success' | 'notify'>
     display: boolean
-    object_no_parse: boolean
+    object_no_stringify: boolean
 
     constructor() {
         this.colors = {
@@ -18,7 +18,7 @@ class ColorConsole {
         }
         this.omit = []
         this.display = true
-        this.object_no_parse = false
+        this.object_no_stringify = false
     }
 
     //custom stringify option
@@ -28,7 +28,7 @@ class ColorConsole {
             if (el instanceof Array) {
                 output.push(('[ ' + el + ' ]').replace(/,/g, ', '))
             }
-            else if (el instanceof Object && !this.object_no_parse) {
+            else if (el instanceof Object && !this.object_no_stringify) {
                 output.push(JSON.stringify(el))
             }
             else {
