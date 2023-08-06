@@ -1,5 +1,5 @@
 import { IncomingMessage, ServerResponse } from "http";
-import { get_all_users } from "../../model/users/user_model";
+import { create_user, get_all_users, t_user } from "../../model/users/user_model";
 import parseRequestData from "../../utils/parse_request._data";
 import { cc } from "../../index";
 
@@ -10,10 +10,10 @@ const userController = async (req: IncomingMessage, res: ServerResponse) => {
     //get users data
     if (req.url === '/user' && req.method === 'GET') {
 
-        cc.notify('users data requested')
+        cc.notify(' users data requested')
 
-        const output = get_all_users()
-        res.end(output)
+        const output = await get_all_users()
+        res.end(JSON.stringify(output))
         return
 
     }
@@ -21,11 +21,32 @@ const userController = async (req: IncomingMessage, res: ServerResponse) => {
     //register a user
     if (req.url === '/user/new' && req.method == 'POST') {
 
-        cc.notify('user register attempt')
+        cc.notify(' user register attempt')
 
         const data = await parseRequestData(req)
-        cc.log(data)
 
+        //if data format not valid
+        if (data.username === undefined || data.email === undefined || data.password === undefined) {
+            res.statusCode = 418
+            res.end('Wrong data format')
+            return
+        }
+
+        create_user(data)
+            .then(result => {
+                if (result === 'success') {
+                    res.statusCode = 201
+                    res.end('user succesfully created')
+                }
+                else if (result === 'taken') {
+                    res.statusCode = 409
+                    res.end('username or email already in use')
+                }
+                else if (result === 'error') {
+                    res.statusCode = 400
+                    res.end('error')
+                }
+            })
     }
 
 }

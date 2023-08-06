@@ -5,7 +5,7 @@ module.exports = {
     entry: './src/index.ts',
     output: {
         path: path.resolve(__dirname, 'dist'),
-        filename: 'server.js'
+        filename: 'index.js'
     },
     module: {
         rules: [

@@ -1,20 +1,21 @@
 import { IncomingMessage } from "http"
+import { cc } from ".."
 
-const parseRequestData = (req: IncomingMessage) => {
+const parseRequestData = (req: IncomingMessage): Promise<any> => {
 
     return new Promise((resolve, reject) => {
 
         let body = ''
 
-        req.on('data', (slice) => {
-            body += slice.toString()
+        req.on('data', (chunk) => {
+            body += chunk.toString()
         })
 
         req.on('end', () => {
             try {
-                resolve(JSON.parse(JSON.stringify(body)))
+                resolve(JSON.parse(body))
             } catch (error) {
-                console.error("Error when parsing" + error)
+                cc.error('request data parsing error')
                 reject(error)
             }
         })
