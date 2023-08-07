@@ -1,4 +1,5 @@
 import { cc } from "../../index"
+import CryptoMachine from "../../utils/crypto_machine"
 import { db_query } from "../database/database_model"
 interface t_user { username: string, email: string, password?: string, id?: number }
 
@@ -29,10 +30,15 @@ async function get_all_users(): Promise<Array<t_user>> {
 
 async function create_user({ username, email, password }: { username: string, email: string, password: string }): Promise<'taken' | 'error' | 'success'> {
 
+    //hash a password with bcrypt
+    let hashed_password = CryptoMachine.generate_hash(password)
+
     return new Promise((resolve) => {
-        db_query(`INSERT INTO users (username, email, password) VALUES ('${username}','${email}','${password}')`)
+
+        db_query(`INSERT INTO users (username, email, password) VALUES ('${username}','${email}','${hashed_password}')`)
             .then(() => resolve('success'))
             .catch(err => {
+                //error handling
                 if (err.code === 'ER_DUP_ENTRY') {
                     resolve('taken')
                     return
@@ -44,7 +50,6 @@ async function create_user({ username, email, password }: { username: string, em
                 }
             })
     })
-
 }
 
 export { get_all_users, create_user }

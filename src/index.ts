@@ -2,10 +2,11 @@ import http, { IncomingMessage, ServerResponse } from 'http'
 import userController from './controller/user/user_controller';
 import ColorConsole from './utils/color_console';
 
+
 const PORT = 3000
 export const cc = new ColorConsole()
-
-http.createServer((req: IncomingMessage, res: ServerResponse) => {
+cc.omit.push('notify')
+export const server = http.createServer((req: IncomingMessage, res: ServerResponse) => {
 
     //default headers
     res.setHeader('Access-Controll-Allow-Origin', '*')
@@ -30,4 +31,5 @@ http.createServer((req: IncomingMessage, res: ServerResponse) => {
     }
 
 })
-    .listen(PORT, () => { console.log('listening on port ' + PORT) })
+
+server.listen(PORT, () => { console.log('listening on port ' + PORT) })

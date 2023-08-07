@@ -12,6 +12,7 @@ const parseRequestData = (req: IncomingMessage): Promise<any> => {
         })
 
         req.on('end', () => {
+            if (body === '') resolve({})
             try {
                 resolve(JSON.parse(body))
             } catch (error) {

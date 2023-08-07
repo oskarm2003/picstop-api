@@ -28,7 +28,7 @@ const userController = async (req: IncomingMessage, res: ServerResponse) => {
         //if data format not valid
         if (data.username === undefined || data.email === undefined || data.password === undefined) {
             res.statusCode = 418
-            res.end('Wrong data format')
+            res.end('Wrong data format. Provide {username,email,password}')
             return
         }
 
