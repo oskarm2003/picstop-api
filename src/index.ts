@@ -1,5 +1,5 @@
 import http, { IncomingMessage, ServerResponse } from 'http'
-import userController from './controller/user/user_controller';
+import userController from './controller/users/user_controller';
 import ColorConsole from './utils/color_console';
 
 
@@ -27,9 +27,9 @@ export const server = http.createServer((req: IncomingMessage, res: ServerRespon
 
     else {
         res.statusCode = 404
-        res.end('not found')
+        res.end('action not found')
     }
 
 })
 
-server.listen(PORT, () => { console.log('listening on port ' + PORT) })
+// server.listen(PORT, () => { console.log('listening on port ' + PORT) })

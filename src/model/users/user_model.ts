@@ -28,7 +28,11 @@ async function get_all_users(): Promise<Array<t_user>> {
 
 }
 
-async function create_user({ username, email, password }: { username: string, email: string, password: string }): Promise<'taken' | 'error' | 'success'> {
+//create new user in the database
+type t_reg_output = 'taken' | 'error' | 'success'
+
+async function create_user({ username, email, password }:
+    { username: string, email: string, password: string }): Promise<t_reg_output> {
 
     //hash a password with bcrypt
     let hashed_password = CryptoMachine.generate_hash(password)
@@ -52,5 +56,48 @@ async function create_user({ username, email, password }: { username: string, em
     })
 }
 
-export { get_all_users, create_user }
+//login a user
+type t_auth_output = 'not found' | 'not enough data' | 'success' | 'authorization failed'
+
+async function user_login({ password, username, email }:
+    { username?: string, email?: string, password: string }): Promise<t_auth_output> {
+
+    return new Promise(async (resolve) => {
+
+        let result
+        if (email != undefined) {
+            result = await db_query(`SELECT password FROM users WHERE email='${email}'`)
+                //error handling
+                .catch(err => {
+                    cc.error('USER LOGIN ERROR: ', err);
+                    resolve('not found')
+                })
+        }
+        else if (username != undefined) {
+            result = await db_query(`SELECT password FROM users WHERE username='${username}'`)
+                //error handling
+                .catch(err => {
+                    cc.error('USER LOGIN ERROR: ', err);
+                    resolve('not found')
+                })
+        }
+        else {
+            resolve('not enough data')
+        }
+
+        //if wrong data type
+        if (!Array.isArray(result) || typeof result[0] != 'object') return resolve('not found')
+
+        //compare
+        const hash = result[0].password
+        if (CryptoMachine.match(password, hash)) {
+            resolve('success')
+            return
+        }
+        resolve('authorization failed')
+
+    })
+}
+
+export { get_all_users, create_user, user_login }
 export type { t_user }
