@@ -51,6 +51,10 @@ const userController = async (req: IncomingMessage, res: ServerResponse) => {
                     res.statusCode = 400
                     res.end('error')
                 }
+                else if (result === 'wrong data format') {
+                    res.statusCode = 418
+                    res.end('wrong data format')
+                }
             })
             .catch(err => {
                 cc.error(err)

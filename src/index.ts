@@ -1,12 +1,12 @@
 import http, { IncomingMessage, ServerResponse } from 'http'
 import userController from './controller/user/user_controller';
 import ColorConsole from './utils/color_console';
-import filesController from './controller/file/file_controller';
+import fileController from './controller/file/file_controller';
 
 
 const PORT = 3000
 export const cc = new ColorConsole()
-cc.omit.push('notify')
+// cc.omit.push('notify')
 export const server = http.createServer((req: IncomingMessage, res: ServerResponse) => {
 
     //default headers
@@ -27,8 +27,8 @@ export const server = http.createServer((req: IncomingMessage, res: ServerRespon
     }
 
     //forward to files controller
-    else if (direction === 'files') {
-        filesController(req, res)
+    else if (direction === 'file') {
+        fileController(req, res)
     }
 
     else {

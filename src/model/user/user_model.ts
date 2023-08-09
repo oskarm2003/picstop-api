@@ -2,6 +2,7 @@ import * as jwt from 'jsonwebtoken'
 import { cc } from "../../index"
 import CryptoMachine from "../../utils/crypto_machine"
 import { db_query } from "../database/database_model"
+import { IncomingMessage } from 'http'
 interface t_user { username: string, email: string, password?: string, id?: number }
 
 
@@ -64,15 +65,20 @@ async function get_user_data({ username, email, id }: { username?: string, email
 }
 
 //create new user in the database
-type t_reg_output = 'taken' | 'error' | 'success'
+type t_reg_output = 'taken' | 'error' | 'success' | 'wrong data format'
 
 async function create_user({ username, email, password }:
     { username: string, email: string, password: string }): Promise<t_reg_output> {
 
-    //hash a password with bcrypt
+    //hash a password
     let hashed_password = CryptoMachine.generate_hash(password)
 
     return new Promise((resolve) => {
+
+        if (username.includes('/') || username.includes('\\')) {
+            resolve('wrong data format')
+            return
+        }
 
         db_query(`INSERT INTO users (username, email, password) VALUES ('${username}','${email}','${hashed_password}')`)
             .then(() => resolve('success'))
@@ -139,5 +145,28 @@ function generate_token(username: string) {
     return jwt.sign({ username: username }, 'secret key', { expiresIn: '1h' })
 }
 
-export { get_all_users, create_user, user_login, generate_token, get_user_data }
+//authorize the user
+function authorize_user(req: IncomingMessage): false | string {
+
+    //check if valid token format
+    if (req.headers.authorization === undefined || !req.headers.authorization.startsWith('Bearer ')) return false
+    const token = req.headers.authorization.replace('Bearer ', '')
+
+    //verify
+    let decoded
+    try {
+        decoded = jwt.verify(token, 'secret key')
+    } catch (err) {
+        if (err instanceof Error && err.message === 'invalid signature') cc.warn('INVALID TOKEN SIGNTURE')
+        else cc.log(err)
+        return false
+    }
+
+    if (typeof decoded != 'object' || decoded.username === undefined) return false
+
+    return decoded.username
+
+}
+
+export { get_all_users, create_user, user_login, generate_token, get_user_data, authorize_user }
 export type { t_user }

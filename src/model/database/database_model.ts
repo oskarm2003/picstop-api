@@ -22,6 +22,7 @@ async function create_db(name: string) {
     })
     connection.query('USE ' + name)
     connection.query('CREATE TABLE IF NOT EXISTS `users` (`id` INT NOT NULL AUTO_INCREMENT , `username` VARCHAR(30) NOT NULL , `email` VARCHAR(320) NOT NULL , `password` VARCHAR(150) NOT NULL , PRIMARY KEY (`id`), CONSTRAINT unique_value UNIQUE (username, email));')
+    connection.query('CREATE TABLE IF NOT EXISTS photos (id INT NOT NULL AUTO_INCREMENT , name VARCHAR(64) NOT NULL , author VARCHAR(30) NOT NULL , album VARCHAR(30) NOT NULL , PRIMARY KEY (`id`));')
     connection.end()
     return true
 }

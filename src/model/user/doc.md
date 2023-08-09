@@ -10,7 +10,8 @@ output {id,username,email}
 
 # create_user
 creates a new user.
-input: {username, email, password}
+input: {username, email, password}  
+*username cannot include '/' or '\'
 output: 'taken' | 'error' | 'success'.
 If username and email aren't yet in use the user will be added to the database
 
@@ -25,3 +26,9 @@ generates new token with encrypted username.
 token expires in 1 hour.
 input: username
 output: token
+
+# authorize_user
+authorizes the user by given token.  
+after decoding the token checks if it is valid
+input: token
+output: false | username
