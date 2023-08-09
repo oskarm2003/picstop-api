@@ -1,3 +1,4 @@
+import * as jwt from 'jsonwebtoken'
 import { cc } from "../../index"
 import CryptoMachine from "../../utils/crypto_machine"
 import { db_query } from "../database/database_model"
@@ -25,6 +26,40 @@ async function get_all_users(): Promise<Array<t_user>> {
     }
 
     return output
+
+}
+
+//get user data
+async function get_user_data({ username, email, id }: { username?: string, email?: string, id?: number }): Promise<t_user | null> {
+
+    return new Promise(async (resolve) => {
+
+        let response
+        if (username != undefined) {
+            response = await db_query(`SELECT id,username,email FROM users WHERE username='${username}'`)
+        }
+        else if (email != undefined) {
+            response = await db_query(`SELECT id,username,email FROM users WHERE email='${email}'`)
+        }
+        else if (id != undefined) {
+            response = await db_query(`SELECT id,username,email FROM users WHERE id='${id}'`)
+        }
+        else {
+            resolve(null)
+            return
+        }
+
+        if (!Array.isArray(response) || typeof response[0] != 'object') {
+            resolve(null)
+            return
+        }
+
+        resolve({
+            id: response[0].id,
+            username: response[0].username,
+            email: response[0].email
+        })
+    })
 
 }
 
@@ -57,7 +92,7 @@ async function create_user({ username, email, password }:
 }
 
 //login a user
-type t_auth_output = 'not found' | 'not enough data' | 'success' | 'authorization failed'
+type t_auth_output = 'not found' | 'not enough data' | 'success' | 'authentication failed'
 
 async function user_login({ password, username, email }:
     { username?: string, email?: string, password: string }): Promise<t_auth_output> {
@@ -94,10 +129,15 @@ async function user_login({ password, username, email }:
             resolve('success')
             return
         }
-        resolve('authorization failed')
+        resolve('authentication failed')
 
     })
 }
 
-export { get_all_users, create_user, user_login }
+//generates new token for given user
+function generate_token(username: string) {
+    return jwt.sign({ username: username }, 'secret key', { expiresIn: '1h' })
+}
+
+export { get_all_users, create_user, user_login, generate_token, get_user_data }
 export type { t_user }

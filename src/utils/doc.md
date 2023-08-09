@@ -1,22 +1,22 @@
 # parse_request_data
-transforms raw request data and transforms it to the JSON.
-Function is asynchronous and it returns a promise
-input: (req: IncomingMessage)
+transforms raw request data and transforms it to the JSON.  
+Function is asynchronous and it returns a promise  
+input: (req: IncomingMessage)  
 output: promise\<JSON\>
 
 # crypto_machine
-CryptoMachine manages password hashing and comparing
+CryptoMachine manages password hashing and comparing  
 
-hash structure: salt$hashed_password
-example: 39dsa$abababa
-    39dsa - salt
-    abababa - hashed password
+hash structure: salt$hashed_password  
+example: 39dsa$abababa  
+    39dsa - salt  
+    abababa - hashed password  
 
-.generate_hash(password) - returns concatenated salt and new hashed password ready to be stored in the database
-.match(password, hash_to_compare) - returns true if password matches the hash
-.hash(password, salt) - appends the salt to the given password and returns hashed string
-.create_salt(length) - creates salt with given length. Salt is random string with letters and numbers.
-.get_salt(string) - splits the given hash by '$' and returns only the salt
+.generate_hash(password) - returns concatenated salt and new hashed password ready to be stored in the database  
+.match(password, hash_to_compare) - returns true if password matches the hash  
+.hash(password, salt) - appends the salt to the given password and returns hashed string  
+.create_salt(length) - creates salt with given length. Salt is random string with letters and numbers.  
+.get_salt(string) - splits the given hash by '$' and returns only the salt  
 
 
 # color_console

@@ -1,6 +1,7 @@
 import http, { IncomingMessage, ServerResponse } from 'http'
-import userController from './controller/users/user_controller';
+import userController from './controller/user/user_controller';
 import ColorConsole from './utils/color_console';
+import filesController from './controller/file/file_controller';
 
 
 const PORT = 3000
@@ -25,6 +26,11 @@ export const server = http.createServer((req: IncomingMessage, res: ServerRespon
         userController(req, res)
     }
 
+    //forward to files controller
+    else if (direction === 'files') {
+        filesController(req, res)
+    }
+
     else {
         res.statusCode = 404
         res.end('action not found')
@@ -32,4 +38,4 @@ export const server = http.createServer((req: IncomingMessage, res: ServerRespon
 
 })
 
-// server.listen(PORT, () => { console.log('listening on port ' + PORT) })
+server.listen(PORT, () => { console.log('listening on port ' + PORT) })

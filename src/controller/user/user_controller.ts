@@ -1,11 +1,9 @@
 import { IncomingMessage, ServerResponse } from "http";
-import { create_user, get_all_users, t_user, user_login } from "../../model/users/user_model";
+import { create_user, generate_token, get_all_users, get_user_data, t_user, user_login } from "../../model/user/user_model";
 import parseRequestData from "../../utils/parse_request._data";
 import { cc } from "../../index";
 
 const userController = async (req: IncomingMessage, res: ServerResponse) => {
-
-    cc.notify('user branch activated')
 
     //get users data
     if (req.url === '/user' && req.method === 'GET') {
@@ -24,6 +22,12 @@ const userController = async (req: IncomingMessage, res: ServerResponse) => {
         cc.notify('user register attempt')
 
         const data = await parseRequestData(req)
+            //errro handling    
+            .catch(() => {
+                res.statusCode = 400
+                res.end()
+                return
+            })
 
         //if data format not valid
         if (data.username === undefined || data.email === undefined || data.password === undefined) {
@@ -35,6 +39,7 @@ const userController = async (req: IncomingMessage, res: ServerResponse) => {
         create_user(data)
             .then(result => {
                 if (result === 'success') {
+                    cc.success('user created')
                     res.statusCode = 201
                     res.end('user succesfully created')
                 }
@@ -60,16 +65,23 @@ const userController = async (req: IncomingMessage, res: ServerResponse) => {
         cc.notify('user login attempt')
 
         const data = await parseRequestData(req)
+            //errro handling    
+            .catch(() => {
+                res.statusCode = 400
+                res.end()
+                return
+            })
 
         //if wrong data format
         if (data.password === undefined || (data.username === undefined && data.email === undefined)) {
             res.statusCode = 418
             res.end('not enough data')
+            return
         }
 
         user_login(data)
-            .then(result => {
-                if (result === 'authorization failed') {
+            .then(async result => {
+                if (result === 'authentication failed') {
                     res.statusCode = 401
                 }
                 else if (result === 'not enough data') {
@@ -78,6 +90,24 @@ const userController = async (req: IncomingMessage, res: ServerResponse) => {
                 else if (result === 'not found') {
                     res.statusCode = 404
                 }
+                else if (result === 'success') {
+                    //successfully logged in
+                    if (data.username === undefined) {
+                        const user_data = await get_user_data({ email: data.email })
+                        //on no data
+                        if (user_data === null) {
+                            res.statusCode = 400
+                            res.end('error')
+                            return
+                        }
+                        //on data
+                        data.username = user_data.username
+                    }
+                    const token = generate_token(data.username)
+                    res.end(token)
+                    return
+                }
+
                 res.end(result)
             })
             .catch(err => {
