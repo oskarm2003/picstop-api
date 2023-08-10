@@ -1,8 +1,10 @@
 import { IncomingMessage } from 'http';
 import { cc } from '../..';
 import { IncomingForm } from 'formidable';
-import { existsSync, mkdirSync, renameSync, unlinkSync } from 'fs'
+import { existsSync, mkdirSync, readFileSync, renameSync, unlinkSync, writeFile } from 'fs'
 import path from 'path';
+import sharp from 'sharp'
+
 
 //post new image
 type t_post_output = { code: number } &
@@ -61,7 +63,7 @@ function post_image(req: IncomingMessage, author: string | undefined): Promise<t
 
             //move to the desired album
             renameSync(file.filepath, new_path)
-            if (existsSync(new_path)) {
+            if (await scale_down(new_path)) {
                 resolve({ ok: true, path: new_path, code: 201 })
                 return
             }
@@ -72,6 +74,52 @@ function post_image(req: IncomingMessage, author: string | undefined): Promise<t
         })
     })
 
+}
+
+//scales down an image to the friendly size
+function scale_down(path: string): Promise<boolean> {
+
+    //desired width
+    const desired_width = 1000
+
+    return new Promise((resolve) => {
+
+        //check if exists
+        if (!existsSync(path)) {
+            resolve(false)
+            return
+        }
+
+        //scale down if necessary
+        const file = readFileSync(path)
+        sharp(file).metadata((err, metadata) => {
+
+            //error handling
+            if (err) {
+                cc.error(err)
+                resolve(false)
+                return
+            }
+            else if (metadata.width === undefined) {
+                resolve(false)
+                return
+            }
+
+            //check if resize necessary
+            if (metadata.width < desired_width) {
+                resolve(true)
+                return
+            }
+
+            //resize
+            sharp(file).resize({ width: 500 }).toFile(path)
+                .catch(err => {
+                    cc.error(err)
+                    resolve(false)
+                })
+                .then(() => resolve(true))
+        })
+    })
 }
 
 //create new album within the uploads directory

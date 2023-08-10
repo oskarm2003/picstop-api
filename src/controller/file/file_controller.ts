@@ -39,7 +39,7 @@ const fileController = async (req: IncomingMessage, res: ServerResponse) => {
         }
         else {
             res.statusCode = 400
-            res.end()
+            res.end('description error')
             remove_photo(result.path)
         }
 

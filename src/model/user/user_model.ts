@@ -148,6 +148,10 @@ function generate_token(username: string) {
 //authorize the user
 function authorize_user(req: IncomingMessage): false | string {
 
+
+    //TODO: use the safe secret key from process.env
+
+
     //check if valid token format
     if (req.headers.authorization === undefined || !req.headers.authorization.startsWith('Bearer ')) return false
     const token = req.headers.authorization.replace('Bearer ', '')
