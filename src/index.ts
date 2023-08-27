@@ -2,7 +2,15 @@ import http, { IncomingMessage, ServerResponse } from 'http'
 import userController from './controller/user/user_controller';
 import ColorConsole from './utils/color_console';
 import fileController from './controller/file/file_controller';
+import path from 'path'
 
+//gloabals declaration
+declare global {
+    var root_dir: string
+    var uploads_path: string
+}
+global.root_dir = path.join(__dirname, '..')
+global.uploads_path = path.join(root_dir, "dist", "uploads")
 
 const PORT = 3000
 export const cc = new ColorConsole()

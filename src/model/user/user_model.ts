@@ -75,6 +75,13 @@ async function create_user({ username, email, password }:
 
     return new Promise((resolve) => {
 
+        //reserved keyword
+        if (username === '_shared') {
+            resolve('taken')
+            return
+        }
+
+        //wrong format
         if (username.includes('/') || username.includes('\\')) {
             resolve('wrong data format')
             return
