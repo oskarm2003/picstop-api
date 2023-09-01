@@ -18,6 +18,9 @@ function createDescriptor(path: string): Promise<boolean> {
 
         let album = path_arr[path_arr.length - 2]
         let author = album
+        if (album === '_shared') {
+            author = 'anonymous'
+        }
         let timestamp = Date.now()
         if (album === 'shared') { author = 'unknown' }
 
@@ -34,7 +37,8 @@ function createDescriptor(path: string): Promise<boolean> {
 }
 
 //get descriptor from the database
-function readDescriptor(album: string, name: string | undefined) {
+type t_descriptor = { id: number, name: string, author: string, album: string, timestamp: number }
+function readDescriptor(album: string, name: string | undefined): Promise<Array<t_descriptor> | t_descriptor> {
 
     return new Promise((resolve, reject) => {
 
@@ -46,7 +50,7 @@ function readDescriptor(album: string, name: string | undefined) {
                 })
                 .then(data => {
                     if (Array.isArray(data)) {
-                        const output = new Array()
+                        const output: Array<t_descriptor> = new Array()
                         for (let row of data) {
                             output.push({
                                 id: row.id,

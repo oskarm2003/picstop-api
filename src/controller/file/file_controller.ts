@@ -3,6 +3,7 @@ import { cleanUp, deleteImage, get_image, post_image, remove_asset } from "../..
 import { authorize_user } from "../../model/user/user_model";
 import { createDescriptor, deleteDescriptor, readDescriptor } from "../../model/file/descriptor_model";
 import { cc } from "../..";
+import { removeAllTags } from "../../model/about_files/tags_model";
 
 const fileController = async (req: IncomingMessage, res: ServerResponse) => {
 
@@ -150,12 +151,20 @@ const fileController = async (req: IncomingMessage, res: ServerResponse) => {
             .then(async () => {
 
                 //delete image
-                return await deleteImage(url_segments[2], url_segments[3])
-                    .then(() => {
-                        res.statusCode = 204
-                        res.end()
-                    })
+                await deleteImage(url_segments[2], url_segments[3])
+                    .then(async () => {
 
+                        //delete tags
+                        //TODO: delete by the id
+                        await removeAllTags(0)
+                            .then(() => {
+
+                                //TODO: delete comments
+
+                                res.statusCode = 204
+                                res.end()
+                            })
+                    })
             })
             .catch(err => {
                 cc.error(err)
@@ -164,6 +173,7 @@ const fileController = async (req: IncomingMessage, res: ServerResponse) => {
             })
     }
 
+    //clean up
     if (req.url === '/file' && req.method === 'DELETE') {
         cleanUp()
         res.statusCode = 204

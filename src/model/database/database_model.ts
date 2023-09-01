@@ -1,14 +1,6 @@
 import * as mysql from 'mysql'
 import { cc } from '../..'
 
-//global db name
-declare global {
-    var db_name: string
-}
-
-global.db_name = 'photos_db'
-
-
 //create new db
 async function create_db(name: string) {
 
@@ -23,6 +15,7 @@ async function create_db(name: string) {
     connection.query('USE ' + name)
     connection.query('CREATE TABLE IF NOT EXISTS `users` (`id` INT NOT NULL AUTO_INCREMENT , `username` VARCHAR(30) NOT NULL , `email` VARCHAR(320) NOT NULL , `password` VARCHAR(150) NOT NULL , PRIMARY KEY (`id`), CONSTRAINT unique_value UNIQUE (username, email));')
     connection.query('CREATE TABLE IF NOT EXISTS photos (id INT NOT NULL AUTO_INCREMENT , name VARCHAR(64) NOT NULL , author VARCHAR(30) NOT NULL , album VARCHAR(30) NOT NULL , timestamp INT(20) NOT NULL , PRIMARY KEY (`id`));')
+    connection.query('CREATE TABLE IF NOT EXISTS tags (photo_id INT(16) NOT NULL , tag_name VARCHAR(64) NOT NULL ); ')
     connection.end()
     return true
 }

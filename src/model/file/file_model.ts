@@ -192,7 +192,6 @@ function remove_asset(path: string): Promise<true> {
 
 //returns a photo file by given name
 type t_get_output = { code: number } & ({ ok: true, file: Buffer } | { ok: false, message: string })
-
 function get_image(name: string, album: string): Promise<t_get_output> {
 
     return new Promise((resolve) => {
@@ -269,24 +268,30 @@ function cleanUp(album_name?: string) {
 
     const uploads_path = path.join(global.root_dir, 'dist', 'uploads')
 
-    //album name not given
-    if (album_name === undefined) {
-        readdir(uploads_path, (err, contents) => {
-            if (err) return
-            for (let el of contents) {
-                if (el === '_shared') continue
-                cleanUp(el)
+    return new Promise((resolve) => {
+
+        //album name not given
+        if (album_name === undefined) {
+            readdir(uploads_path, async (err, contents) => {
+                if (err) return
+                for (let el of contents) {
+                    if (el === '_shared') continue
+                    await cleanUp(el)
+                }
+                resolve(true)
+            })
+            return
+        }
+
+        //album name given
+        readdir(path.join(uploads_path, album_name), (err, files) => {
+            if (err || !Array.isArray(files)) return
+            if (files.length === 0) {
+                rmdir(path.join(uploads_path, album_name), () => {
+                    resolve(true)
+                })
             }
         })
-        return
-    }
-
-    //album name given
-    readdir(path.join(uploads_path, album_name), (err, files) => {
-        if (err || !Array.isArray(files)) return
-        if (files.length === 0) {
-            rmdir(path.join(uploads_path, album_name), () => { })
-        }
     })
 }
 

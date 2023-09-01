@@ -3,14 +3,17 @@ import userController from './controller/user/user_controller';
 import ColorConsole from './utils/color_console';
 import fileController from './controller/file/file_controller';
 import path from 'path'
+import tagController from './controller/tag/tag_controller';
 
-//gloabals declaration
+//globals declaration
 declare global {
     var root_dir: string
     var uploads_path: string
+    var db_name: string
 }
 global.root_dir = path.join(__dirname, '..')
 global.uploads_path = path.join(root_dir, "dist", "uploads")
+global.db_name = 'photos_db'
 
 const PORT = 3000
 export const cc = new ColorConsole()
@@ -37,6 +40,11 @@ export const server = http.createServer((req: IncomingMessage, res: ServerRespon
     //forward to files controller
     else if (direction === 'file') {
         fileController(req, res)
+    }
+
+    //forward to tags controller
+    else if (direction === 'tag') {
+        tagController(req, res)
     }
 
     else {

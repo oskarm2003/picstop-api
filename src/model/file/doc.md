@@ -27,6 +27,13 @@ Removes file or directory.
 input: path: string
 output: promise with a boolean  
 
+# cleanUp
+Cleans up by removing empty albums in the uploads directory.  
+The _shared album is being skipped.  
+If no arguments are given the function will look for all the empty directories.  
+If name given only the specified directory is being checked.  
+input: name:? string
+output: promise with true
 
 
 # descriptor_model file:
@@ -46,3 +53,4 @@ output: promise with the JSON data
 Deletes the descriptor.  
 input: album: stirng, name: string
 output: promise
+

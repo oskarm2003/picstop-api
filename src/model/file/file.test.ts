@@ -1,9 +1,6 @@
 import path from "path"
-import { create_new_album, post_image, remove_asset } from "./file_model"
-import fs from 'fs'
-import FormData from 'form-data'
-import { IncomingMessage } from "http"
-import { Socket } from "net"
+import { cleanUp, create_new_album, post_image, remove_asset } from "./file_model"
+import fs, { existsSync } from 'fs'
 
 describe('file testing', () => {
 
@@ -12,10 +9,10 @@ describe('file testing', () => {
         expect(fs.existsSync(path.join(uploads_path, 'example'))).toBeTruthy()
     })
 
-    test('remove album', async () => {
-        expect(await remove_asset(path.join(uploads_path, 'example'))).toBeTruthy()
-        expect(fs.existsSync(path.join(uploads_path, 'example'))).toBeFalsy()
-    })
+    // test('remove album', async () => {
+    //     expect(await remove_asset(path.join(uploads_path, 'example'))).toBeTruthy()
+    //     expect(fs.existsSync(path.join(uploads_path, 'example'))).toBeFalsy()
+    // })
 
     // test('post new photo', () => {
 
@@ -31,4 +28,16 @@ describe('file testing', () => {
     //     // new IncomingMessage('' as unknown as Socket)
 
     // })
+
+    //test('delete photo', ()=>{})
+
+    test('clean up', async () => {
+
+        const file_path = path.join(global.root_dir, 'dist', 'uploads', 'example')
+
+        expect(existsSync(file_path)).toBeTruthy()
+        await cleanUp()
+        expect(existsSync(file_path)).toBeFalsy()
+
+    })
 })

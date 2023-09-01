@@ -3,7 +3,9 @@ controls requests which url's start with /files
 
 
 # POST /file  
-Posts new file
+Posts new file.  
+If an opperation is authorized the photo will have an author.  
+If not photo is being posted as the anonymous and is stored in the _shared folder.   
 multipart/form-data: {
     file: File,
     name: string

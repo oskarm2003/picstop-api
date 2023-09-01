@@ -36,6 +36,16 @@ const userController = async (req: IncomingMessage, res: ServerResponse) => {
             return
         }
 
+        //forbidden username
+        const forbidden = ['anonymous', '_shared']
+        for (let el of forbidden) {
+            if (data.username === el) {
+                res.statusCode = 403
+                res.end('forbidden username')
+                return
+            }
+        }
+
         create_user(data)
             .then(result => {
                 if (result === 'success') {

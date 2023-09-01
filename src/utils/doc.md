@@ -18,6 +18,14 @@ example: 39dsa$abababa
 .create_salt(length) - creates salt with given length. Salt is random string with letters and numbers.  
 .get_salt(string) - splits the given hash by '$' and returns only the salt  
 
+# authorization
+Authorizise an user by the authorization req header.  
+If the authorization failes the function automaticaly sends a server response and returns false.  
+You can provide 'who' argument to authorize to a specific user - then the response is a boolean.  
+If you omit the 'who' you can either get false, if auth failed, or the name of the user sent in the token.  
+input: req, res, who?: string  
+output: boolean | string
+
 
 # color_console
 Logs colorful messages and turns them on and off globally.  

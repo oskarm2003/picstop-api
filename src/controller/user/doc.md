@@ -8,6 +8,7 @@ Returns all users profiles (no password)
 # POST /user/new
 Creates new user   
 input: {username, email, password}  
+**forbidden usernames: anonymous, _shared
 
 max length of the inputs:  
 username - 30 characters  
