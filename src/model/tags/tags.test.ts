@@ -76,4 +76,8 @@ describe('tags test', () => {
         expect(result.length).toBe(0)
 
     })
+
+    // test('get tagged photos', async () => {
+
+    // })
 })

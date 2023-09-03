@@ -2,7 +2,7 @@ import * as mysql from 'mysql'
 import { cc } from '../..'
 
 //create new db
-async function create_db(name: string) {
+async function createDB(name: string) {
 
     const connection = mysql.createConnection({ host: 'localhost', user: 'root', password: '' })
     connection.connect()
@@ -20,7 +20,7 @@ async function create_db(name: string) {
     return true
 }
 
-async function remove_db(name: string) {
+async function removeDB(name: string) {
 
     const connection = mysql.createConnection({ host: 'localhost', user: 'root', password: '' })
     connection.query('DROP DATABASE ' + name)
@@ -29,7 +29,7 @@ async function remove_db(name: string) {
 }
 
 //connects to database and runs a query provided in the input
-async function db_query(query: string) {
+async function dbQuery(query: string) {
 
     return new Promise((resolve, reject) => {
         let connection = mysql.createConnection({ host: 'localhost', user: 'root', password: '', database: db_name })
@@ -46,4 +46,4 @@ async function db_query(query: string) {
     })
 }
 
-export { db_query, create_db, remove_db }
+export { dbQuery, createDB, removeDB }

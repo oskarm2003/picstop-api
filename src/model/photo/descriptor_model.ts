@@ -1,5 +1,5 @@
 import { cc } from "../.."
-import { db_query } from "../database/database_model"
+import { dbQuery } from "../database/database_model"
 
 function createDescriptor(path: string): Promise<boolean> {
 
@@ -25,7 +25,7 @@ function createDescriptor(path: string): Promise<boolean> {
         if (album === 'shared') { author = 'unknown' }
 
         //add the descriptor to the database
-        db_query(`INSERT INTO photos (name, author, album, timestamp) VALUES ('${photo_name}', '${author}', '${album}', '${timestamp}')`)
+        dbQuery(`INSERT INTO photos (name, author, album, timestamp) VALUES ('${photo_name}', '${author}', '${album}', '${timestamp}')`)
             .catch(err => {
                 cc.error('PHOTO DESCRIPTION NOT SAVED IN THE DB:', err)
                 reject(err)
@@ -38,12 +38,12 @@ function createDescriptor(path: string): Promise<boolean> {
 
 //get descriptor from the database
 type t_descriptor = { id: number, name: string, author: string, album: string, timestamp: number }
-function readDescriptor(album: string, name: string | undefined): Promise<Array<t_descriptor> | t_descriptor> {
+function readDescriptor(album: string, name?: string): Promise<Array<t_descriptor> | t_descriptor> {
 
     return new Promise((resolve, reject) => {
 
         if (name === undefined) {
-            db_query(`SELECT * FROM photos WHERE (album='${album}')`)
+            dbQuery(`SELECT * FROM photos WHERE (album='${album}')`)
                 .catch(err => {
                     cc.error('DESCRIPTOR NOT FOUND: ', err)
                     reject(err)
@@ -69,13 +69,13 @@ function readDescriptor(album: string, name: string | undefined): Promise<Array<
             return
         }
         else {
-            db_query(`SELECT * FROM photos WHERE (album='${album}' AND name='${name}')`)
+            dbQuery(`SELECT * FROM photos WHERE (album='${album}' AND name='${name}')`)
                 .catch(err => {
                     cc.error('DESCRIPTOR NOT FOUND: ', err)
                     reject(err)
                 })
                 .then(data => {
-                    if (Array.isArray(data)) {
+                    if (Array.isArray(data) && data.length > 0) {
                         resolve({
                             id: data[0].id,
                             name: data[0].name,
@@ -85,7 +85,7 @@ function readDescriptor(album: string, name: string | undefined): Promise<Array<
                         })
                     }
                     else {
-                        reject('wrong output format')
+                        reject('descriptor not found')
                     }
                 })
             return
@@ -97,7 +97,7 @@ function deleteDescriptor(album: string, name: string): Promise<true> {
 
     return new Promise((resolve, reject) => {
 
-        db_query(`DELETE FROM photos WHERE (album='${album}' AND name='${name}')`)
+        dbQuery(`DELETE FROM photos WHERE (album='${album}' AND name='${name}')`)
             .catch(err => reject(err))
             .then(() => resolve(true))
 

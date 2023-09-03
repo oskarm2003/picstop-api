@@ -1,16 +1,18 @@
 import * as jwt from 'jsonwebtoken'
 import { cc } from "../../index"
 import CryptoMachine from "../../utils/crypto_machine"
-import { db_query } from "../database/database_model"
+import { dbQuery } from "../database/database_model"
 import { IncomingMessage } from 'http'
+require('dotenv').config()
+
 interface t_user { username: string, email: string, password?: string, id?: number }
 
 
 //get all users' data from the database
-async function get_all_users(): Promise<Array<t_user>> {
+async function getAllUsers(): Promise<Array<t_user>> {
 
     let output: Array<t_user> = []
-    const result = await db_query('SELECT * FROM users')
+    const result = await dbQuery('SELECT * FROM users')
         //on error    
         .catch(err => cc.error('GET ALL USERS ERROR: ', err))
 
@@ -31,19 +33,19 @@ async function get_all_users(): Promise<Array<t_user>> {
 }
 
 //get user data
-async function get_user_data({ username, email, id }: { username?: string, email?: string, id?: number }): Promise<t_user | null> {
+async function getUserData({ username, email, id }: { username?: string, email?: string, id?: number }): Promise<t_user | null> {
 
     return new Promise(async (resolve) => {
 
         let response
         if (username != undefined) {
-            response = await db_query(`SELECT id,username,email FROM users WHERE username='${username}'`)
+            response = await dbQuery(`SELECT id,username,email FROM users WHERE username='${username}'`)
         }
         else if (email != undefined) {
-            response = await db_query(`SELECT id,username,email FROM users WHERE email='${email}'`)
+            response = await dbQuery(`SELECT id,username,email FROM users WHERE email='${email}'`)
         }
         else if (id != undefined) {
-            response = await db_query(`SELECT id,username,email FROM users WHERE id='${id}'`)
+            response = await dbQuery(`SELECT id,username,email FROM users WHERE id='${id}'`)
         }
         else {
             resolve(null)
@@ -67,13 +69,13 @@ async function get_user_data({ username, email, id }: { username?: string, email
 //create new user in the database
 type t_reg_output = 'taken' | 'error' | 'success' | 'wrong data format'
 
-async function create_user({ username, email, password }:
+async function createUser({ username, email, password }:
     { username: string, email: string, password: string }): Promise<t_reg_output> {
 
     //hash a password
     let hashed_password = CryptoMachine.generate_hash(password)
 
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
 
         //reserved keyword
         if (username === '_shared') {
@@ -87,8 +89,20 @@ async function create_user({ username, email, password }:
             return
         }
 
-        db_query(`INSERT INTO users (username, email, password) VALUES ('${username}','${email}','${hashed_password}')`)
-            .then(() => resolve('success'))
+        //check if username or email in use
+        dbQuery(`SELECT * FROM users WHERE (username='${username}' or email='${email}')`)
+            .then(data => {
+                //if taken
+                if (Array.isArray(data) && data.length != 0) {
+                    resolve('taken')
+                    return
+                }
+
+                //proceed
+                dbQuery(`INSERT INTO users (username, email, password) VALUES ('${username}','${email}','${hashed_password}')`)
+                    .then(() => resolve('success'))
+            })
+            //error handling
             .catch(err => {
                 //error handling
                 if (err.code === 'ER_DUP_ENTRY') {
@@ -101,20 +115,21 @@ async function create_user({ username, email, password }:
                     return
                 }
             })
+
     })
 }
 
 //login a user
 type t_auth_output = 'not found' | 'not enough data' | 'success' | 'authentication failed'
 
-async function user_login({ password, username, email }:
+async function userLogin({ password, username, email }:
     { username?: string, email?: string, password: string }): Promise<t_auth_output> {
 
     return new Promise(async (resolve) => {
 
         let result
         if (email != undefined) {
-            result = await db_query(`SELECT password FROM users WHERE email='${email}'`)
+            result = await dbQuery(`SELECT password FROM users WHERE email='${email}'`)
                 //error handling
                 .catch(err => {
                     cc.error('USER LOGIN ERROR: ', err);
@@ -122,7 +137,7 @@ async function user_login({ password, username, email }:
                 })
         }
         else if (username != undefined) {
-            result = await db_query(`SELECT password FROM users WHERE username='${username}'`)
+            result = await dbQuery(`SELECT password FROM users WHERE username='${username}'`)
                 //error handling
                 .catch(err => {
                     cc.error('USER LOGIN ERROR: ', err);
@@ -148,16 +163,19 @@ async function user_login({ password, username, email }:
 }
 
 //generates new token for given user
-function generate_token(username: string) {
-    return jwt.sign({ username: username }, 'secret key', { expiresIn: '1h' })
+function generateToken(username: string) {
+
+    const token_key = process.env.TOKEN_KEY
+    if (typeof token_key != 'string') {
+        return false
+    }
+
+    return jwt.sign({ username: username }, token_key, { expiresIn: '1h' })
+
 }
 
 //authorize the user
-function authorize_user(req: IncomingMessage): false | string {
-
-
-    //TODO: use the safe secret key from process.env
-
+function authorizeUser(req: IncomingMessage): false | string {
 
     //check if valid token format
     if (req.headers.authorization === undefined || !req.headers.authorization.startsWith('Bearer ')) return false
@@ -166,7 +184,11 @@ function authorize_user(req: IncomingMessage): false | string {
     //verify
     let decoded
     try {
-        decoded = jwt.verify(token, 'secret key')
+        const token_key = process.env.TOKEN_KEY
+        if (typeof token_key != 'string') {
+            return false
+        }
+        decoded = jwt.verify(token, token_key)
     } catch (err) {
         if (err instanceof Error && err.message === 'invalid signature') cc.warn('INVALID TOKEN SIGNTURE')
         else cc.log(err)
@@ -179,5 +201,5 @@ function authorize_user(req: IncomingMessage): false | string {
 
 }
 
-export { get_all_users, create_user, user_login, generate_token, get_user_data, authorize_user }
+export { getAllUsers, createUser, userLogin, generateToken, getUserData, authorizeUser }
 export type { t_user }

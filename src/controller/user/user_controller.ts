@@ -1,7 +1,8 @@
 import { IncomingMessage, ServerResponse } from "http";
-import { create_user, generate_token, get_all_users, get_user_data, t_user, user_login } from "../../model/user/user_model";
+import { createUser, generateToken, getAllUsers, getUserData, userLogin } from "../../model/user/user_model";
 import parseRequestData from "../../utils/parse_request._data";
 import { cc } from "../../index";
+import isEmptyString from "../../utils/isEmptyString";
 
 const userController = async (req: IncomingMessage, res: ServerResponse) => {
 
@@ -10,7 +11,7 @@ const userController = async (req: IncomingMessage, res: ServerResponse) => {
 
         cc.notify(' users data requested')
 
-        const output = await get_all_users()
+        const output = await getAllUsers()
         res.end(JSON.stringify(output))
         return
 
@@ -30,7 +31,7 @@ const userController = async (req: IncomingMessage, res: ServerResponse) => {
             })
 
         //if data format not valid
-        if (data.username === undefined || data.email === undefined || data.password === undefined) {
+        if (isEmptyString(data.username, data.email, data.password)) {
             res.statusCode = 418
             res.end('wrong data format, provide {username,email,password}')
             return
@@ -46,7 +47,7 @@ const userController = async (req: IncomingMessage, res: ServerResponse) => {
             }
         }
 
-        create_user(data)
+        createUser(data)
             .then(result => {
                 if (result === 'success') {
                     cc.success('user created')
@@ -87,13 +88,13 @@ const userController = async (req: IncomingMessage, res: ServerResponse) => {
             })
 
         //if wrong data format
-        if (data.password === undefined || (data.username === undefined && data.email === undefined)) {
+        if (isEmptyString(data.password, data.username) && isEmptyString(data.password, data.email)) {
             res.statusCode = 418
             res.end('not enough data')
             return
         }
 
-        user_login(data)
+        userLogin(data)
             .then(async result => {
                 if (result === 'authentication failed') {
                     res.statusCode = 401
@@ -107,7 +108,7 @@ const userController = async (req: IncomingMessage, res: ServerResponse) => {
                 else if (result === 'success') {
                     //successfully logged in
                     if (data.username === undefined) {
-                        const user_data = await get_user_data({ email: data.email })
+                        const user_data = await getUserData({ email: data.email })
                         //on no data
                         if (user_data === null) {
                             res.statusCode = 400
@@ -117,7 +118,10 @@ const userController = async (req: IncomingMessage, res: ServerResponse) => {
                         //on data
                         data.username = user_data.username
                     }
-                    const token = generate_token(data.username)
+                    const token = generateToken(data.username)
+                    if (token === false) {
+                        throw 'internal problem - invalid token key'
+                    }
                     res.end(token)
                     return
                 }
@@ -136,7 +140,6 @@ const userController = async (req: IncomingMessage, res: ServerResponse) => {
     else {
         res.statusCode = 404
         res.end('action not found')
-        return
     }
 
 }

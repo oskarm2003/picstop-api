@@ -1,6 +1,7 @@
 # POST /tag  
 Adds a new tag to a photo.  
-input: {tag_name: string, author: string, photo_name: string} as application/json
+input: {tag_name: string, author: string, photo_name: string} as application/json.  
+**when author argument is set to 'anonymous' or omitted completely the _shared album will be searched for file_name and the authorization will not be required.  
 **tag name cannot include: '/', '\', ',', '.'  
 **requires authorization -> Bearer [token] in a authorization header.  
 
@@ -18,7 +19,8 @@ possible outcomes:
 
 # GET /tags/[album_name]/[photo_name]
 Sends all tag names of the given photo.  
-Album and photo names provided in the url.  
+Album and photo names provided in the url. 
+**If album_name set to anonymous the photo will be searched in the _shared album.   
 
 possible outcomes:  
     200 - tags
@@ -37,6 +39,7 @@ possible outcomes:
 Deletes the tag.  
 Data (album_name, photo_name, tag_name) is provided in the url.  
 Requires authorization if the photo has an owner.  
+**If album_name set to anonymous the photo will be searched in the _shared album.   
 
 possible outcomes:
     200 - success  

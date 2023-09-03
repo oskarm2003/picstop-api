@@ -1,9 +1,10 @@
 import http, { IncomingMessage, ServerResponse } from 'http'
 import userController from './controller/user/user_controller';
 import ColorConsole from './utils/color_console';
-import fileController from './controller/file/file_controller';
+import fileController from './controller/photo/file_controller';
 import path from 'path'
 import tagController from './controller/tag/tag_controller';
+
 
 //globals declaration
 declare global {
@@ -38,12 +39,12 @@ export const server = http.createServer((req: IncomingMessage, res: ServerRespon
     }
 
     //forward to files controller
-    else if (direction === 'file') {
+    else if (direction === 'photo') {
         fileController(req, res)
     }
 
     //forward to tags controller
-    else if (direction === 'tag') {
+    else if (direction.startsWith('tag')) {
         tagController(req, res)
     }
 

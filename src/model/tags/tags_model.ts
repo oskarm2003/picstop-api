@@ -1,10 +1,10 @@
-import { db_query } from "../database/database_model";
+import { dbQuery } from "../database/database_model";
 
 //counts how many times does the tag occur
 function countTag(name: string): Promise<number> {
 
     return new Promise((resolve, reject) => {
-        db_query(`SELECT COUNT(tag_name) AS 'quantity' FROM tags WHERE (tag_name='${name}') GROUP BY tag_name`)
+        dbQuery(`SELECT COUNT(tag_name) AS 'quantity' FROM tags WHERE (tag_name='${name}') GROUP BY tag_name`)
             .then(data => {
 
                 if (!Array.isArray(data)) {
@@ -27,7 +27,7 @@ type t_tag = { name: string, popularity: number }
 function allTags(): Promise<Array<t_tag>> {
 
     return new Promise((resolve, reject) => {
-        db_query('SELECT tag_name, COUNT(tag_name) as popularity FROM tags GROUP BY tag_name ORDER BY popularity DESC')
+        dbQuery('SELECT tag_name, COUNT(tag_name) as popularity FROM tags GROUP BY tag_name ORDER BY popularity DESC')
             .then(data => {
 
                 if (!Array.isArray(data)) {
@@ -52,7 +52,7 @@ function allTags(): Promise<Array<t_tag>> {
 function addTag(tag_name: string, photo_id: number): Promise<true> {
 
     return new Promise((resolve, reject) => {
-        db_query(`SELECT * FROM tags WHERE (tag_name='${tag_name}' and photo_id='${photo_id}')`)
+        dbQuery(`SELECT * FROM tags WHERE (tag_name='${tag_name}' and photo_id='${photo_id}')`)
             .then(data => {
                 //if tag already exists
                 if (!Array.isArray(data) || data.length != 0) {
@@ -61,7 +61,7 @@ function addTag(tag_name: string, photo_id: number): Promise<true> {
                 }
 
                 //add a new tag
-                return db_query(`INSERT INTO tags VALUES ('${photo_id}', '${tag_name}')`)
+                return dbQuery(`INSERT INTO tags VALUES ('${photo_id}', '${tag_name}')`)
                     .then(() => {
                         resolve(true)
                     })
@@ -78,7 +78,7 @@ function removeTagFromPhoto(tag_name: string, photo_id: number): Promise<true> {
 
     return new Promise((resolve, reject) => {
 
-        db_query(`DELETE FROM tags WHERE (tag_name='${tag_name}' and photo_id='${photo_id}')`)
+        dbQuery(`DELETE FROM tags WHERE (tag_name='${tag_name}' and photo_id='${photo_id}')`)
             .then(() => resolve(true))
             .catch(err => reject(err))
     })
@@ -89,7 +89,7 @@ function getPhotoTags(photo_id: number): Promise<Array<string>> {
 
     return new Promise((resolve, reject) => {
 
-        db_query(`SELECT tag_name FROM tags WHERE (photo_id='${photo_id}')`)
+        dbQuery(`SELECT tag_name FROM tags WHERE (photo_id='${photo_id}')`)
             .then(data => {
 
                 if (!Array.isArray(data)) {
@@ -111,7 +111,7 @@ function removeAllTags(photo_id: number) {
 
     return new Promise((resolve, reject) => {
 
-        db_query(`DELETE FROM tags WHERE (photo_id='${photo_id}')`)
+        dbQuery(`DELETE FROM tags WHERE (photo_id='${photo_id}')`)
             .then(() => resolve(true))
             .catch(err => reject(err))
 
@@ -125,7 +125,7 @@ function getTagged(tag_name: string): Promise<Array<t_tagged>> {
 
     return new Promise((resolve, reject) => {
 
-        db_query(`SELECT photos.name, photos.album FROM tags INNER JOIN photos ON photos.id=photo_id WHERE (tag_name='${tag_name}')`)
+        dbQuery(`SELECT photos.name, photos.album FROM tags INNER JOIN photos ON photos.id=photo_id WHERE (tag_name='${tag_name}')`)
             .then(data => {
                 if (!Array.isArray(data)) {
                     throw 'invalid database response'

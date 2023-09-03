@@ -1,4 +1,3 @@
-create process.env and store the token key there
 confirm account on email
 test files
-in file_controller delete the tags by the photo id
+add removing users

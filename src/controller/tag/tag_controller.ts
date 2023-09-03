@@ -1,9 +1,10 @@
 import { IncomingMessage, ServerResponse } from "http"
 import parseRequestData from "../../utils/parse_request._data"
-import { addTag, countTag, getPhotoTags, getTagged, removeTagFromPhoto } from "../../model/about_files/tags_model"
+import { addTag, countTag, getPhotoTags, getTagged, removeTagFromPhoto } from "../../model/tags/tags_model"
 import { cc } from "../.."
-import { readDescriptor } from "../../model/file/descriptor_model"
+import { readDescriptor } from "../../model/photo/descriptor_model"
 import authorize from "../../utils/authorization"
+import isEmptyString from "../../utils/isEmptyString"
 
 const tagController = async (req: IncomingMessage, res: ServerResponse) => {
 
@@ -13,8 +14,13 @@ const tagController = async (req: IncomingMessage, res: ServerResponse) => {
         //get data
         let data = await parseRequestData(req)
 
+        //when author arg omitted
+        if (data.author === undefined) {
+            data.author = 'anonymous'
+        }
+
         //if wrong input format
-        if (typeof data.tag_name != 'string' || typeof data.photo_name != 'string' || typeof data.author != 'string') {
+        if (isEmptyString(data.tag_name, data.photo_name, data.author)) {
             res.statusCode = 418
             res.end('wrong input data format')
             return
@@ -96,8 +102,18 @@ const tagController = async (req: IncomingMessage, res: ServerResponse) => {
     else if (req.method === 'GET' && req.url?.match(/^\/tags\/(.(?!\\)(?!\.)(?!,))+\/(.(?!\\)(?!\.)(?!,))+$/)) {
 
         const url_segments = req.url.split('/')
-        const album_name = url_segments[2]
+        let album_name = url_segments[2]
         const photo_name = url_segments[3]
+
+        if (album_name === 'anonymous' || album_name === '_shared') {
+            album_name = '_shared'
+        }
+
+        if (isEmptyString(album_name, photo_name)) {
+            res.statusCode = 422
+            res.end('wrong input')
+            return
+        }
 
         readDescriptor(album_name, photo_name)
             .then(data => {
@@ -131,9 +147,19 @@ const tagController = async (req: IncomingMessage, res: ServerResponse) => {
             return
         }
 
-        const album_name = url_segments[2]
+        let album_name = url_segments[2]
         const photo_name = url_segments[3]
         const tag_name = url_segments[4]
+
+        if (album_name === 'anonymous' || album_name === '_shared') {
+            album_name = "_shared"
+        }
+
+        if (isEmptyString(album_name, photo_name, tag_name)) {
+            res.statusCode = 422
+            res.end('wrong input')
+            return
+        }
 
         //get photo id
         readDescriptor(album_name, photo_name)
@@ -142,8 +168,11 @@ const tagController = async (req: IncomingMessage, res: ServerResponse) => {
                     throw 'photo not found'
                 }
 
+                console.log(data.album);
+
+
                 //authorization
-                if (!authorize(req, res, data.author) && data.album != '_shared') {
+                if (data.album != '_shared' && !authorize(req, res, data.author)) {
                     return
                 }
 
@@ -155,6 +184,11 @@ const tagController = async (req: IncomingMessage, res: ServerResponse) => {
                 res.statusCode = 400
                 res.end('error')
             })
+    }
+
+    else {
+        res.statusCode = 404
+        res.end('action not found')
     }
 
 }

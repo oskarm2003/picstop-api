@@ -1,5 +1,5 @@
 import { IncomingMessage, ServerResponse } from "http"
-import { authorize_user } from "../model/user/user_model"
+import { authorizeUser } from "../model/user/user_model"
 
 //authorization
 const authorize = (req: IncomingMessage, res: ServerResponse, who?: string): boolean | string => {
@@ -10,7 +10,7 @@ const authorize = (req: IncomingMessage, res: ServerResponse, who?: string): boo
         return false
     }
 
-    let authorization = authorize_user(req)
+    let authorization = authorizeUser(req)
     if (!authorization) {
         res.statusCode = 401
         res.end('authorization failed')

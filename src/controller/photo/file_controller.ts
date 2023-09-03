@@ -1,21 +1,22 @@
 import { IncomingMessage, ServerResponse } from "http";
-import { cleanUp, deleteImage, get_image, post_image, remove_asset } from "../../model/file/file_model";
-import { authorize_user } from "../../model/user/user_model";
-import { createDescriptor, deleteDescriptor, readDescriptor } from "../../model/file/descriptor_model";
+import { cleanUp, deleteImage, getImage, postImage, removeAsset } from "../../model/photo/file_model";
+import { authorizeUser } from "../../model/user/user_model";
+import { createDescriptor, deleteDescriptor, readDescriptor } from "../../model/photo/descriptor_model";
 import { cc } from "../..";
-import { removeAllTags } from "../../model/about_files/tags_model";
+import { removeAllTags } from "../../model/tags/tags_model";
+import isEmptyString from "../../utils/isEmptyString";
 
 const fileController = async (req: IncomingMessage, res: ServerResponse) => {
 
     //POST a new photo
-    if (req.method === 'POST' && req.url === '/file') {
+    if (req.method === 'POST' && req.url === '/photo') {
 
         cc.notify('post image')
 
         //user authorization
         let author
         if (req.headers.authorization) {
-            const authorization = authorize_user(req)
+            const authorization = authorizeUser(req)
             //if authorization failed
             if (!authorization) {
                 res.statusCode = 401
@@ -25,7 +26,7 @@ const fileController = async (req: IncomingMessage, res: ServerResponse) => {
             author = authorization
         }
 
-        const result = await post_image(req, author)
+        const result = await postImage(req, author)
         res.statusCode = result.code
 
         //if result not ok
@@ -39,7 +40,7 @@ const fileController = async (req: IncomingMessage, res: ServerResponse) => {
                 cc.error(err)
                 res.statusCode = 400
                 res.end('description error')
-                remove_asset(result.path)
+                removeAsset(result.path)
                     .catch(err => {
                         cc.error(err)
                     })
@@ -52,7 +53,7 @@ const fileController = async (req: IncomingMessage, res: ServerResponse) => {
     }
 
     //GET the photo descriptors
-    else if (req.method === 'GET' && req.url?.match(/^\/file\/descriptor\/(.(?!\\))*$/gm)) {
+    else if (req.method === 'GET' && req.url?.match(/^\/photo\/descriptor(\/(.(?!\\))*)?$/gm)) {
 
         //handle the url
         const url_segments = req.url.split('/')
@@ -61,27 +62,30 @@ const fileController = async (req: IncomingMessage, res: ServerResponse) => {
             res.end('too many arguments')
             return
         }
-        const author = url_segments[3]
+        let album = url_segments[3]
         const file_name = url_segments[4]
 
-        readDescriptor(author, file_name)
-            .catch(err => {
-                cc.error(err)
-                res.statusCode = 400
-                res.end('error')
-            })
+        if (album === undefined) {
+            album = '_shared'
+        }
+
+        readDescriptor(album, file_name)
             .then(data => {
                 res.setHeader('Content-Type', 'application/json')
                 res.end(JSON.stringify(data))
             })
-
+            .catch(err => {
+                cc.error(err)
+                res.statusCode = 404
+                res.end('error')
+            })
     }
 
     //GET photo by given name
-    else if (req.method === 'GET' && req.url?.match(/^\/file\/(.(?!\\))*$/gm)) {
+    else if (req.method === 'GET' && req.url?.match(/^\/photo\/file\/(.(?!\\))*$/gm)) {
 
         const url_segments = req.url.split('/')
-        if (url_segments.length > 4) {
+        if (url_segments.length > 5) {
             res.statusCode = 418
             res.end('too many arguments')
             return
@@ -89,16 +93,22 @@ const fileController = async (req: IncomingMessage, res: ServerResponse) => {
 
         //check the data format in the url
         let file_name, album
-        if (url_segments.length === 4) {
-            file_name = url_segments[3]
-            album = url_segments[2]
+        if (url_segments.length === 5) {
+            file_name = url_segments[4]
+            album = url_segments[3]
         }
         else {
-            file_name = url_segments[2]
-            album = 'shared'
+            file_name = url_segments[3]
+            album = '_shared'
         }
 
-        const result = await get_image(file_name, album)
+        if (isEmptyString(file_name, album)) {
+            res.statusCode = 422
+            res.end('wrong input')
+            return
+        }
+
+        const result = await getImage(file_name, album)
 
         //after result
         res.statusCode = result.code
@@ -113,12 +123,12 @@ const fileController = async (req: IncomingMessage, res: ServerResponse) => {
     }
 
     //DELETE photo
-    if (req.method === 'DELETE' && req.url?.match(/^\/file\/(.(?!\\))*$/gm)) {
+    else if (req.method === 'DELETE' && req.url?.match(/^\/photo\/(.(?!\\))*$/gm)) {
 
         //authorize the operation
         let user: string
         if (req.headers.authorization) {
-            const authorization = authorize_user(req)
+            const authorization = authorizeUser(req)
             //if authorization failed
             if (!authorization) {
                 res.statusCode = 401
@@ -135,14 +145,20 @@ const fileController = async (req: IncomingMessage, res: ServerResponse) => {
 
         const url_segments = req.url.split('/')
         if (url_segments.length != 4) {
-            res.statusCode = 400
-            res.end('wrong arguments format')
+            res.statusCode = 422
+            res.end('wrong input format')
             return
         }
 
         if (url_segments[2] != user) {
             res.statusCode = 401
             res.end('authorization failed')
+            return
+        }
+
+        if (isEmptyString(url_segments[2], url_segments[3])) {
+            res.statusCode = 422
+            res.end('wrong input')
             return
         }
 
@@ -174,10 +190,15 @@ const fileController = async (req: IncomingMessage, res: ServerResponse) => {
     }
 
     //clean up
-    if (req.url === '/file' && req.method === 'DELETE') {
+    else if (req.url === '/photo' && req.method === 'DELETE') {
         cleanUp()
         res.statusCode = 204
         res.end()
+    }
+
+    else {
+        res.statusCode = 404
+        res.end('action not found')
     }
 
 }

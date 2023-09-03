@@ -11,7 +11,7 @@ type t_post_output = { code: number } &
     ({ ok: true, path: string } |
     { ok: false, message: string })
 
-function post_image(req: IncomingMessage, author: string | undefined): Promise<t_post_output> {
+function postImage(req: IncomingMessage, author: string | undefined): Promise<t_post_output> {
 
     return new Promise(async (resolve) => {
 
@@ -22,7 +22,7 @@ function post_image(req: IncomingMessage, author: string | undefined): Promise<t
         }
         else {
             upload_dir = path.join(global.uploads_path, author)
-            await create_new_album(author).catch(err => {
+            await createNewAlbum(author).catch(() => {
                 resolve({ ok: false, message: 'problem', code: 400 })
                 return
             })
@@ -78,7 +78,7 @@ function post_image(req: IncomingMessage, author: string | undefined): Promise<t
 
             //move to the desired album
             renameSync(file.filepath, new_path)
-            if (await scale_down(new_path)) {
+            if (await scaleDown(new_path)) {
                 resolve({ ok: true, path: new_path, code: 201 })
                 return
             }
@@ -91,7 +91,7 @@ function post_image(req: IncomingMessage, author: string | undefined): Promise<t
 }
 
 //scales down an image to the optimal size
-function scale_down(path: string): Promise<boolean> {
+function scaleDown(path: string): Promise<boolean> {
 
     //desired width
     const desired_width = 1000
@@ -137,7 +137,7 @@ function scale_down(path: string): Promise<boolean> {
 }
 
 //create new album within the uploads directory
-function create_new_album(name: string): Promise<boolean> {
+function createNewAlbum(name: string): Promise<boolean> {
     const album = path.join(global.uploads_path, name)
     return new Promise((resolve) => {
         if (!existsSync(album)) {
@@ -157,7 +157,7 @@ function create_new_album(name: string): Promise<boolean> {
 }
 
 //remove file or directory
-function remove_asset(path: string): Promise<true> {
+function removeAsset(path: string): Promise<true> {
     return new Promise((resolve, reject) => {
 
         if (!existsSync(path)) reject('does not exist')
@@ -192,7 +192,7 @@ function remove_asset(path: string): Promise<true> {
 
 //returns a photo file by given name
 type t_get_output = { code: number } & ({ ok: true, file: Buffer } | { ok: false, message: string })
-function get_image(name: string, album: string): Promise<t_get_output> {
+function getImage(name: string, album: string): Promise<t_get_output> {
 
     return new Promise((resolve) => {
         //find the photo in the album
@@ -226,7 +226,7 @@ function get_image(name: string, album: string): Promise<t_get_output> {
                 }
             }
 
-            resolve({ ok: false, code: 400, message: 'error' })
+            resolve({ ok: false, code: 404, message: 'file not found' })
 
         })
     })
@@ -246,7 +246,7 @@ function deleteImage(album: string, name: string): Promise<true> {
 
             for (let file of files) {
                 if (file.startsWith(name)) {
-                    remove_asset(path.join(global.root_dir, 'dist', 'uploads', album, file))
+                    removeAsset(path.join(global.root_dir, 'dist', 'uploads', album, file))
                         .then(() => {
                             cleanUp(album)
                             resolve(true)
@@ -295,4 +295,4 @@ function cleanUp(album_name?: string) {
     })
 }
 
-export { post_image, remove_asset, create_new_album, scale_down, get_image, deleteImage, cleanUp }
+export { postImage, removeAsset, createNewAlbum, scaleDown, getImage, deleteImage, cleanUp }
