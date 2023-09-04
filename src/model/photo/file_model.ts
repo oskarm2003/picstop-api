@@ -6,12 +6,44 @@ import path from 'path';
 import sharp from 'sharp'
 
 
+
+//get form data
+function formatFormData(req: IncomingMessage): Promise<{ name: string, file_temp_path: string }> {
+
+    return new Promise((resolve, reject) => {
+        const form = new IncomingForm({ keepExtensions: true })
+
+        form.parse(req, (err, fields, files) => {
+
+            //error
+            if (err) {
+                reject(err)
+                return
+            }
+
+            //too little data
+            if (fields.name === undefined || files.file === undefined) {
+                reject('not enough input data')
+            }
+
+            //format and return
+            const output = {
+                name: Array.isArray(fields.name) ? fields.name[0] : fields.name,
+                file_temp_path: Array.isArray(files.file) ? files.file[0].filepath : files.file.filepath
+            }
+
+            resolve(output)
+
+        })
+    })
+}
+
 //post new image
 type t_post_output = { code: number } &
     ({ ok: true, path: string } |
     { ok: false, message: string })
 
-function postImage(req: IncomingMessage, author: string | undefined): Promise<t_post_output> {
+function postImage(file_temp_path: string, name: string, author: string | undefined): Promise<t_post_output> {
 
     return new Promise(async (resolve) => {
 
@@ -28,66 +60,44 @@ function postImage(req: IncomingMessage, author: string | undefined): Promise<t_
             })
         }
 
-        const form = new IncomingForm({ keepExtensions: true })
+        //get extension
+        const path_segments = file_temp_path.split('.')
+        const extension = path_segments[path_segments.length - 1]
 
-        //parse
-        form.parse(req, async (err, fields, files) => {
-
-            //error handling
-            if (err) {
-                cc.error('FILE PARSE ERROR: ', err)
-                resolve({ ok: false, message: 'file parse error', code: 400 })
-                return
-            }
-
-            //validate given data
-            if (files.file === undefined || fields.name === 'undefined') {
-                resolve({ ok: false, message: 'not enough data', code: 418 })
-                return
-            }
-
-            const file = Array.isArray(files.file) ? files.file[0] : files.file
-            const name = Array.isArray(fields.name) ? fields.name[0] : fields.name
-
-            //get extension
-            let path_arr = file.originalFilename?.split('.')
-            if (!Array.isArray(path_arr)) {
-                resolve({ ok: false, message: 'wrong data format', code: 418 })
-                return
-            }
-            let extension = path_arr[path_arr?.length - 1]
-
-            //check file extension
-            if (extension.toUpperCase() != 'JPG' && extension.toUpperCase() != 'JPEG' && extension.toUpperCase() != 'PNG' && extension.toUpperCase() != 'TIFF') {
-                resolve({ ok: false, message: 'wrong data format', code: 418 })
-                return
-            }
-
-            //check if name taken
-            if (existsSync(path.join(upload_dir, name + '.' + extension))) {
-                resolve({ ok: false, message: 'name already in use', code: 409 })
-                return
-            }
-
-            const new_path = path.join(upload_dir, name + '.' + extension)
-
-            if (name.includes('/') || name.includes('\\')) {
-                resolve({ ok: false, message: 'wrong data format', code: 418 })
-                return
-            }
-
-            //move to the desired album
-            renameSync(file.filepath, new_path)
-            if (await scaleDown(new_path)) {
-                resolve({ ok: true, path: new_path, code: 201 })
-                return
-            }
-
-            resolve({ ok: false, message: 'error', code: 400 })
+        //check file extension
+        const valid_extensions = ['JPG', 'JPEG', 'PNG', 'TIFF']
+        let kill = true
+        for (let el of valid_extensions) {
+            if (extension.toUpperCase() === el) kill = false
+        }
+        if (kill) {
+            resolve({ ok: false, message: 'invalid file extension', code: 422 })
             return
-        })
-    })
+        }
 
+        //check if name taken
+        if (existsSync(path.join(upload_dir, name + '.' + extension))) {
+            resolve({ ok: false, message: 'name already in use', code: 409 })
+            return
+        }
+
+        const new_path = path.join(upload_dir, name + '.' + extension)
+
+        if (name.includes('/') || name.includes('\\')) {
+            resolve({ ok: false, message: 'wrong filename format', code: 422 })
+            return
+        }
+
+        //move to the desired album
+        renameSync(file_temp_path, new_path)
+        if (await scaleDown(new_path)) {
+            resolve({ ok: true, path: new_path, code: 201 })
+            return
+        }
+
+        resolve({ ok: false, message: 'error', code: 400 })
+        return
+    })
 }
 
 //scales down an image to the optimal size
@@ -264,35 +274,48 @@ function deleteImage(album: string, name: string): Promise<true> {
 }
 
 //cleans up all empty albums or single album given in the input if empty
-function cleanUp(album_name?: string) {
+function cleanUp(album_name?: string): Promise<void> {
 
     const uploads_path = path.join(global.root_dir, 'dist', 'uploads')
 
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
 
         //album name not given
         if (album_name === undefined) {
             readdir(uploads_path, async (err, contents) => {
-                if (err) return
+                if (err) {
+                    reject('path does not exist')
+                    return
+                }
                 for (let el of contents) {
                     if (el === '_shared') continue
-                    await cleanUp(el)
+                    await cleanUp(el).catch(err => cc.error(err))
                 }
-                resolve(true)
+                resolve()
             })
             return
         }
 
         //album name given
         readdir(path.join(uploads_path, album_name), (err, files) => {
-            if (err || !Array.isArray(files)) return
+            if (err || !Array.isArray(files)) {
+                reject('could not read contents of ' + album_name)
+                return
+            }
             if (files.length === 0) {
-                rmdir(path.join(uploads_path, album_name), () => {
-                    resolve(true)
+                rmdir(path.join(uploads_path, album_name), (err) => {
+                    if (err) {
+                        reject('could not remove ' + album_name)
+                        return
+                    }
+                    resolve()
                 })
+            }
+            else {
+                resolve()
             }
         })
     })
 }
 
-export { postImage, removeAsset, createNewAlbum, scaleDown, getImage, deleteImage, cleanUp }
+export { postImage, removeAsset, createNewAlbum, scaleDown, getImage, deleteImage, cleanUp, formatFormData }

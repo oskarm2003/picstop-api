@@ -72,6 +72,7 @@ const tagController = async (req: IncomingMessage, res: ServerResponse) => {
         const tag_name = req.url.split('/')[3]
         getTagged(tag_name)
             .then(data => {
+                res.setHeader('Content-Type', 'application/json')
                 res.end(JSON.stringify(data))
             })
             .catch(err => {

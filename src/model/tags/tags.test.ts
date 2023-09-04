@@ -1,6 +1,6 @@
 import { addTag, allTags, countTag, getPhotoTags, removeAllTags, removeTagFromPhoto } from "./tags_model"
 
-describe('tags test', () => {
+describe('tags testing', () => {
 
     //global db name change
     global.db_name = 'photos_test'
@@ -37,7 +37,6 @@ describe('tags test', () => {
 
         //check
         let result = await allTags()
-        console.log(result);
         expect(result[0].popularity).not.toBeNaN()
 
     })
@@ -46,12 +45,12 @@ describe('tags test', () => {
     test('get all photo tags', async () => {
 
         //add more tags
-        await addTag('smile', 1)
-        await addTag('rainbow', 1)
+        await addTag('happy', 15)
+        await addTag('rainbow', 15)
 
         //check
-        let result = await getPhotoTags(1)
-        expect(result.length).toBe(3)
+        let result = await getPhotoTags(15)
+        expect(result.length).toBe(2)
 
     })
 

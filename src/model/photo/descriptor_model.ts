@@ -26,12 +26,12 @@ function createDescriptor(path: string): Promise<boolean> {
 
         //add the descriptor to the database
         dbQuery(`INSERT INTO photos (name, author, album, timestamp) VALUES ('${photo_name}', '${author}', '${album}', '${timestamp}')`)
+            .then(() => {
+                resolve(true)
+            })
             .catch(err => {
                 cc.error('PHOTO DESCRIPTION NOT SAVED IN THE DB:', err)
                 reject(err)
-            })
-            .then(() => {
-                resolve(true)
             })
     })
 }
@@ -70,10 +70,6 @@ function readDescriptor(album: string, name?: string): Promise<Array<t_descripto
         }
         else {
             dbQuery(`SELECT * FROM photos WHERE (album='${album}' AND name='${name}')`)
-                .catch(err => {
-                    cc.error('DESCRIPTOR NOT FOUND: ', err)
-                    reject(err)
-                })
                 .then(data => {
                     if (Array.isArray(data) && data.length > 0) {
                         resolve({
@@ -88,6 +84,10 @@ function readDescriptor(album: string, name?: string): Promise<Array<t_descripto
                         reject('descriptor not found')
                     }
                 })
+                .catch(err => {
+                    cc.error('DESCRIPTOR NOT FOUND: ', err)
+                    reject(err)
+                })
             return
         }
     })
@@ -98,8 +98,8 @@ function deleteDescriptor(album: string, name: string): Promise<true> {
     return new Promise((resolve, reject) => {
 
         dbQuery(`DELETE FROM photos WHERE (album='${album}' AND name='${name}')`)
-            .catch(err => reject(err))
             .then(() => resolve(true))
+            .catch(err => reject(err))
 
     })
 

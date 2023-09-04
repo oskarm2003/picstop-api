@@ -4,6 +4,7 @@ import ColorConsole from './utils/color_console';
 import fileController from './controller/photo/file_controller';
 import path from 'path'
 import tagController from './controller/tag/tag_controller';
+import commentsController from './controller/comments/comments_controller';
 
 
 //globals declaration
@@ -46,6 +47,11 @@ export const server = http.createServer((req: IncomingMessage, res: ServerRespon
     //forward to tags controller
     else if (direction.startsWith('tag')) {
         tagController(req, res)
+    }
+
+    //forward to comments controller
+    else if (direction.startsWith('comment')) {
+        commentsController(req, res)
     }
 
     else {

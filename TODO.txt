@@ -1,3 +1,5 @@
 confirm account on email
 test files
 add removing users
+better promises (Promise.all)
+emojis in the comments

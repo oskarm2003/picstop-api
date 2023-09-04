@@ -1,6 +1,6 @@
 import { createUser, getAllUsers, getUserData, userLogin } from "./user_model"
 
-describe('users test', () => {
+describe('users testing', () => {
 
     //global db name change
     db_name = 'photos_test'

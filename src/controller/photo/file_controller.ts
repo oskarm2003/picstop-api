@@ -1,54 +1,88 @@
 import { IncomingMessage, ServerResponse } from "http";
-import { cleanUp, deleteImage, getImage, postImage, removeAsset } from "../../model/photo/file_model";
+import { cleanUp, deleteImage, formatFormData, getImage, postImage, removeAsset } from "../../model/photo/file_model";
 import { authorizeUser } from "../../model/user/user_model";
 import { createDescriptor, deleteDescriptor, readDescriptor } from "../../model/photo/descriptor_model";
 import { cc } from "../..";
 import { removeAllTags } from "../../model/tags/tags_model";
 import isEmptyString from "../../utils/isEmptyString";
+import authorize from "../../utils/authorization";
 
 const fileController = async (req: IncomingMessage, res: ServerResponse) => {
 
     //POST a new photo
     if (req.method === 'POST' && req.url === '/photo') {
 
-        cc.notify('post image')
-
         //user authorization
         let author
-        if (req.headers.authorization) {
-            const authorization = authorizeUser(req)
-            //if authorization failed
-            if (!authorization) {
-                res.statusCode = 401
-                res.end('authorization failed')
-                return
-            }
-            author = authorization
+        if (req.headers.authorization?.startsWith('Bearer ')) {
+            author = authorize(req, res)
+            if (typeof author != 'string') return
         }
 
-        const result = await postImage(req, author)
-        res.statusCode = result.code
-
-        //if result not ok
-        if (!result.ok) {
-            res.end(result.message)
-            return
-        }
-
-        createDescriptor(result.path)
+        const data = await formatFormData(req)
             .catch(err => {
                 cc.error(err)
                 res.statusCode = 400
-                res.end('description error')
-                removeAsset(result.path)
-                    .catch(err => {
-                        cc.error(err)
+                res.end('error')
+                return
+            })
+
+        if (typeof data != 'object') {
+            res.statusCode = 400
+            res.end('error')
+            return
+        }
+
+        postImage(data.file_temp_path, data.name, author)
+            .then(data => {
+
+                //on fail
+                if (!data.ok) {
+                    res.statusCode = data.code
+                    res.end(data.message)
+                    return
+                }
+
+                createDescriptor(data.path)
+                    .then(() => {
+                        res.statusCode = 201
+                        res.end('success')
+                        return
+                    })
+                    .catch(async () => {
+                        await removeAsset(data.path)
+                        throw 'descriptor not created'
                     })
             })
-            .then(() => {
-                res.end('photo posted')
-                cc.success('image successfully posted')
+            .catch(err => {
+                cc.error(err)
+                res.statusCode = 400
+                res.end('error')
             })
+
+        // const result = await postImage(req, author)
+        // res.statusCode = result.code
+
+        // //if result not ok
+        // if (!result.ok) {
+        //     res.end(result.message)
+        //     return
+        // }
+
+        // createDescriptor(result.path)
+        //     .catch(err => {
+        //         cc.error(err)
+        //         res.statusCode = 400
+        //         res.end('description error')
+        //         removeAsset(result.path)
+        //             .catch(err => {
+        //                 cc.error(err)
+        //             })
+        //     })
+        //     .then(() => {
+        //         res.end('photo posted')
+        //         cc.success('image successfully posted')
+        //     })
 
     }
 
@@ -192,6 +226,9 @@ const fileController = async (req: IncomingMessage, res: ServerResponse) => {
     //clean up
     else if (req.url === '/photo' && req.method === 'DELETE') {
         cleanUp()
+            .catch(err => {
+                cc.error(err)
+            })
         res.statusCode = 204
         res.end()
     }
