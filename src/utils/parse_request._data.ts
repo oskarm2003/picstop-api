@@ -14,10 +14,11 @@ const parseRequestData = (req: IncomingMessage): Promise<any> => {
         req.on('end', () => {
             if (body === '') resolve({})
             try {
-                resolve(JSON.parse(body))
+                const parsed = JSON.parse(body)
+                resolve(parsed)
             } catch (error) {
                 cc.error('request data parsing error')
-                reject(error)
+                resolve({})
             }
         })
 

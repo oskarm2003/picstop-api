@@ -1,13 +1,13 @@
 import { IncomingMessage, ServerResponse } from "http";
 import { cleanUp, deleteImage, formatFormData, getImage, postImage, removeAsset } from "../../model/photo/file_model";
-import { authorizeUser } from "../../model/user/user_model";
 import { createDescriptor, deleteDescriptor, readDescriptor } from "../../model/photo/descriptor_model";
 import { cc } from "../..";
 import { removeAllTags } from "../../model/tags/tags_model";
 import isEmptyString from "../../utils/isEmptyString";
 import authorize from "../../utils/authorization";
+import { deleteAllComments } from "../../model/comments/comments_model";
 
-const fileController = async (req: IncomingMessage, res: ServerResponse) => {
+const photoController = async (req: IncomingMessage, res: ServerResponse) => {
 
     //POST a new photo
     if (req.method === 'POST' && req.url === '/photo') {
@@ -31,6 +31,16 @@ const fileController = async (req: IncomingMessage, res: ServerResponse) => {
             res.statusCode = 400
             res.end('error')
             return
+        }
+
+        //check data format
+        const forbidden_chars = [' ', '.', '/', '\\', ',']
+        for (let char of forbidden_chars) {
+            if (data.name.includes(char)) {
+                res.statusCode = 422
+                res.end('forbidden name')
+                return
+            }
         }
 
         postImage(data.file_temp_path, data.name, author)
@@ -59,31 +69,6 @@ const fileController = async (req: IncomingMessage, res: ServerResponse) => {
                 res.statusCode = 400
                 res.end('error')
             })
-
-        // const result = await postImage(req, author)
-        // res.statusCode = result.code
-
-        // //if result not ok
-        // if (!result.ok) {
-        //     res.end(result.message)
-        //     return
-        // }
-
-        // createDescriptor(result.path)
-        //     .catch(err => {
-        //         cc.error(err)
-        //         res.statusCode = 400
-        //         res.end('description error')
-        //         removeAsset(result.path)
-        //             .catch(err => {
-        //                 cc.error(err)
-        //             })
-        //     })
-        //     .then(() => {
-        //         res.end('photo posted')
-        //         cc.success('image successfully posted')
-        //     })
-
     }
 
     //GET the photo descriptors
@@ -159,24 +144,6 @@ const fileController = async (req: IncomingMessage, res: ServerResponse) => {
     //DELETE photo
     else if (req.method === 'DELETE' && req.url?.match(/^\/photo\/(.(?!\\))*$/gm)) {
 
-        //authorize the operation
-        let user: string
-        if (req.headers.authorization) {
-            const authorization = authorizeUser(req)
-            //if authorization failed
-            if (!authorization) {
-                res.statusCode = 401
-                res.end('authorization failed')
-                return
-            }
-            user = authorization
-        }
-        else {
-            res.statusCode = 401
-            res.end('authorization failed')
-            return
-        }
-
         const url_segments = req.url.split('/')
         if (url_segments.length != 4) {
             res.statusCode = 422
@@ -184,11 +151,8 @@ const fileController = async (req: IncomingMessage, res: ServerResponse) => {
             return
         }
 
-        if (url_segments[2] != user) {
-            res.statusCode = 401
-            res.end('authorization failed')
-            return
-        }
+        //authorization
+        if (authorize(req, res, url_segments[2]) === false) return
 
         if (isEmptyString(url_segments[2], url_segments[3])) {
             res.statusCode = 422
@@ -196,25 +160,16 @@ const fileController = async (req: IncomingMessage, res: ServerResponse) => {
             return
         }
 
-        //delete photo's descriptor
-        deleteDescriptor(url_segments[2], url_segments[3])
-            .then(async () => {
-
-                //delete image
-                await deleteImage(url_segments[2], url_segments[3])
-                    .then(async () => {
-
-                        //delete tags
-                        //TODO: delete by the id
-                        await removeAllTags(0)
-                            .then(() => {
-
-                                //TODO: delete comments
-
-                                res.statusCode = 204
-                                res.end()
-                            })
-                    })
+        //delete photo and all corresponding data
+        Promise.all([
+            removeAllTags(url_segments[2], url_segments[3]),
+            deleteAllComments(url_segments[2], url_segments[3]),
+            deleteImage(url_segments[2], url_segments[3]),
+            deleteDescriptor(url_segments[2], url_segments[3]),
+        ])
+            .then(() => {
+                res.statusCode = 204
+                res.end()
             })
             .catch(err => {
                 cc.error(err)
@@ -240,4 +195,4 @@ const fileController = async (req: IncomingMessage, res: ServerResponse) => {
 
 }
 
-export default fileController
+export default photoController

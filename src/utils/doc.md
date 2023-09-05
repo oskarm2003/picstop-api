@@ -43,3 +43,11 @@ ColorConsole variables:
 .display: boolean -> set to false to omit showing all logs from the object; default: true  
 .omit: ['log', 'error', 'warn', 'success', 'notify'] -> the logs in the array will be ommited globally; default: [empty]  
 .object_no_stringify: boolean -> set to false to not stringify objects; default: false
+
+# Mailer
+Mailer is a class with static methods.  
+It is used to send mails with nodemailer.  
+Anatomy:
+private static templates - used to store and generate mails' templates.  
+private static connection - stores the email connection.  
+static send.[methods] - used to send a particular email.  

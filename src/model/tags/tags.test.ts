@@ -1,14 +1,16 @@
+import { createDescriptor } from "../photo/descriptor_model"
 import { addTag, allTags, countTag, getPhotoTags, removeAllTags, removeTagFromPhoto } from "./tags_model"
 
-describe('tags testing', () => {
+describe('tags testing', async () => {
 
     //global db name change
     global.db_name = 'photos_test'
+    await createDescriptor('user/file.png')
 
     test('add tag', async () => {
 
         //add tag
-        await addTag('example_tag', 1)
+        await addTag('example_tag', 'user', 'file')
 
         //view tags
         let result = await allTags()
@@ -20,8 +22,8 @@ describe('tags testing', () => {
     test('count tag', async () => {
 
         //add more tags
-        await addTag('example_tag', 2)
-        await addTag('example_tag', 3)
+        await addTag('example_tag', 'user', 'file')
+        await addTag('example_tag', 'user', 'file')
 
         //count
         let result = await countTag('example_tag')
@@ -32,8 +34,8 @@ describe('tags testing', () => {
     test('get all tags', async () => {
 
         //add more tags
-        await addTag('smile', 1)
-        await addTag('smile', 2)
+        await addTag('smile', 'user', 'file')
+        await addTag('smile', 'user', 'file')
 
         //check
         let result = await allTags()
@@ -45,11 +47,11 @@ describe('tags testing', () => {
     test('get all photo tags', async () => {
 
         //add more tags
-        await addTag('happy', 15)
-        await addTag('rainbow', 15)
+        await addTag('happy', 'user', 'file')
+        await addTag('rainbow', 'user', 'file')
 
         //check
-        let result = await getPhotoTags(15)
+        let result = await getPhotoTags('user', 'file')
         expect(result.length).toBe(2)
 
     })
@@ -57,7 +59,7 @@ describe('tags testing', () => {
     test('remove single tag from photo', async () => {
 
         //remove
-        await removeTagFromPhoto('example_tag', 1)
+        await removeTagFromPhoto('example_tag', 'user', 'file')
 
         //check if deleted
         let result = await countTag('example_tag')
@@ -68,10 +70,10 @@ describe('tags testing', () => {
     test('remove all tags from the photo', async () => {
 
         //remove all
-        await removeAllTags(1)
+        await removeAllTags('user', 'file')
 
         //check
-        let result = await getPhotoTags(1)
+        let result = await getPhotoTags('user', 'file')
         expect(result.length).toBe(0)
 
     })

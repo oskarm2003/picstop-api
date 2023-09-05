@@ -10,7 +10,7 @@ multipart/form-data: {
     file: File,
     name: string
 }  
-*the name cannot include '\' or '/'  
+*the name cannot include space or characters: / \ . ,  
 *only supported file extensions are: jpg, png, jpeg, tiff
 
 possible outcomes:
@@ -43,7 +43,7 @@ possible outcomes:
 400 - error
 
 # DELETE /photo/[author]/[file_name]
-Deletes a photo and its' descriptor.  
+Deletes a photo, its' descriptor, it's comments and tags.  
 Data provided via request url.   
 This action requires authorization via authorization header.  
 

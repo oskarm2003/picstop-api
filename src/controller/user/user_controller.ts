@@ -3,22 +3,25 @@ import { createUser, generateToken, getAllUsers, getUserData, userLogin } from "
 import parseRequestData from "../../utils/parse_request._data";
 import { cc } from "../../index";
 import isEmptyString from "../../utils/isEmptyString";
+import { changeForgottenPassword, requestPasswordChange } from "../../model/user/password_change_model";
+import { prepareVerification, verifyEmail } from "../../model/user/email_verification";
 
 const userController = async (req: IncomingMessage, res: ServerResponse) => {
 
     //get users data
-    if (req.url === '/user' && req.method === 'GET') {
+    if (req.method === 'GET' && req.url === '/user') {
 
         cc.notify(' users data requested')
 
         const output = await getAllUsers()
+        res.setHeader('Content-Type', 'application/json')
         res.end(JSON.stringify(output))
         return
 
     }
 
     //register a user
-    else if (req.url === '/user/new' && req.method === 'POST') {
+    else if (req.method === 'POST' && req.url === '/user/new') {
 
         cc.notify('user register attempt')
 
@@ -75,7 +78,7 @@ const userController = async (req: IncomingMessage, res: ServerResponse) => {
     }
 
     //login a user
-    else if (req.url === '/user/login' && req.method === 'POST') {
+    else if (req.method === 'POST' && req.url === '/user/login') {
 
         cc.notify('user login attempt')
 
@@ -127,6 +130,108 @@ const userController = async (req: IncomingMessage, res: ServerResponse) => {
                 }
 
                 res.end(result)
+            })
+            .catch(err => {
+                cc.error(err)
+                res.statusCode = 400
+                res.end()
+            })
+
+    }
+
+    else if (req.method === 'POST' && req.url === '/user/prepare_verification') {
+
+        //get and validate data
+        const data = await parseRequestData(req)
+        if (isEmptyString(data.email)) {
+            res.statusCode = 422
+            res.end('invalid input')
+            return
+        }
+
+        //check if user with given email exists
+        const user = await getUserData({ email: data.email })
+        if (user === null) {
+            res.statusCode = 404
+            res.end('account not found')
+            return
+        }
+
+        //proceed
+        //set url (no ssl connection)
+        prepareVerification(data.email)
+            .then(() => {
+                res.statusCode = 204
+                res.end()
+            })
+            .catch(err => {
+                cc.error(err)
+                res.statusCode = 400
+                res.end()
+            })
+
+    }
+
+    else if (req.method === 'GET' && req.url?.match(/^\/user\/verify\/(.(?!\\)(?!\/))+$/)) {
+
+        const token = req.url.split('/')[3]
+        verifyEmail(token)
+            .then(() => {
+                res.statusCode = 200
+                res.setHeader('Content-Type', 'text/html; charset=utf-8')
+                res.end('<h1 style="text-align:center;margin:5vh;color:#4f4f4f; font-size:5vh">Account verified ✅</h1>')
+            })
+            .catch(err => {
+                cc.error(err)
+                res.statusCode = 400
+                res.end('error')
+            })
+    }
+
+    else if (req.method === 'POST' && req.url === '/user/change_password/request') {
+
+        //get and validate data
+        const data = await parseRequestData(req)
+        if (isEmptyString(data.email)) {
+            res.statusCode = 422
+            res.end('invalid input')
+            return
+        }
+
+        //proceed
+        requestPasswordChange(data.email)
+            .then(() => {
+                res.statusCode = 204
+                res.end()
+            })
+            .catch(err => {
+                cc.error(err)
+                res.statusCode = 400
+                res.end('error')
+            })
+
+    }
+
+    else if (req.method === 'PATCH' && req.url === '/user/change_password/forgotten') {
+
+        //get and validate data
+        const data = await parseRequestData(req)
+        if (isEmptyString(data.token, data.password)) {
+            res.statusCode = 422
+            res.end('invalid input')
+            return
+        }
+
+        //proceed
+        changeForgottenPassword(data.token, data.password)
+            .then(data => {
+                if (data === 'expired') {
+                    res.statusCode = 498
+                    res.end('expired')
+                    return
+                }
+                res.statusCode = 204
+                res.end()
             })
             .catch(err => {
                 cc.error(err)

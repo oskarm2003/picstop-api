@@ -49,10 +49,10 @@ function allTags(): Promise<Array<t_tag>> {
 }
 
 //adds a new tag to a photo if not added already
-function addTag(tag_name: string, photo_id: number): Promise<true> {
+function addTag(tag_name: string, photo_author: string, photo_name: string): Promise<void> {
 
     return new Promise((resolve, reject) => {
-        dbQuery(`SELECT * FROM tags WHERE (tag_name='${tag_name}' and photo_id='${photo_id}')`)
+        dbQuery(`SELECT * FROM tags WHERE (tag_name='${tag_name}' and photo_id=(SELECT id FROM photos WHERE (name='${photo_name}' and author='${photo_author}')))`)
             .then(data => {
                 //if tag already exists
                 if (!Array.isArray(data) || data.length != 0) {
@@ -61,10 +61,8 @@ function addTag(tag_name: string, photo_id: number): Promise<true> {
                 }
 
                 //add a new tag
-                return dbQuery(`INSERT INTO tags VALUES ('${photo_id}', '${tag_name}')`)
-                    .then(() => {
-                        resolve(true)
-                    })
+                return dbQuery(`INSERT INTO tags SELECT id, '${tag_name}' FROM photos WHERE (name='${photo_name}' and author='${photo_author}')`)
+                    .then(() => { resolve() })
 
             })
             .catch(err => {
@@ -74,22 +72,22 @@ function addTag(tag_name: string, photo_id: number): Promise<true> {
 }
 
 //remove tag from the photo
-function removeTagFromPhoto(tag_name: string, photo_id: number): Promise<true> {
+function removeTagFromPhoto(tag_name: string, photo_author: string, photo_name: string): Promise<true> {
 
     return new Promise((resolve, reject) => {
 
-        dbQuery(`DELETE FROM tags WHERE (tag_name='${tag_name}' and photo_id='${photo_id}')`)
+        dbQuery(`DELETE FROM tags WHERE (tag_name='${tag_name}' and photo_id=(SELECT id FROM photos WHERE (author='${photo_author}' and name='${photo_name}')))`)
             .then(() => resolve(true))
             .catch(err => reject(err))
     })
 }
 
 //return all tags assigned to a photo
-function getPhotoTags(photo_id: number): Promise<Array<string>> {
+function getPhotoTags(photo_name: string, photo_author: string): Promise<Array<string>> {
 
     return new Promise((resolve, reject) => {
 
-        dbQuery(`SELECT tag_name FROM tags WHERE (photo_id='${photo_id}')`)
+        dbQuery(`SELECT tag_name FROM tags WHERE (photo_id=(SELECT id FROM photos WHERE (author='${photo_author}' and name='${photo_name}')))`)
             .then(data => {
 
                 if (!Array.isArray(data)) {
@@ -107,11 +105,11 @@ function getPhotoTags(photo_id: number): Promise<Array<string>> {
 }
 
 //deletes all photo's tags
-function removeAllTags(photo_id: number) {
+function removeAllTags(author: string, photo_name: string) {
 
     return new Promise((resolve, reject) => {
 
-        dbQuery(`DELETE FROM tags WHERE (photo_id='${photo_id}')`)
+        dbQuery(`DELETE FROM tags WHERE (photo_id=(SELECT id FROM photos WHERE (author='${author}' and name='${photo_name}')))`)
             .then(() => resolve(true))
             .catch(err => reject(err))
 

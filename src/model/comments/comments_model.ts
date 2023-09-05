@@ -102,7 +102,17 @@ function deleteComment(comment_id: number, author: string): Promise<void> {
             .catch(err => reject(err))
 
     })
+}
+
+function deleteAllComments(photo_author: string, photo_name: string): Promise<void> {
+
+    return new Promise((resolve, reject) => {
+        dbQuery(`DELETE FROM comments WHERE (photo_id=(SELECT id FROM photos WHERE (author='${photo_author}' and name='${photo_name}')))`)
+            .then(() => resolve())
+            .catch(err => reject(err))
+    })
+
 
 }
 
-export { addComment, getComments, editComment, deleteComment }
+export { addComment, getComments, editComment, deleteComment, deleteAllComments }

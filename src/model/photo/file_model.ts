@@ -247,6 +247,8 @@ function deleteImage(album: string, name: string): Promise<true> {
 
     return new Promise((resolve, reject) => {
 
+        if (album === 'anonymous') album = '_shared'
+
         readdir(path.join(global.root_dir, 'dist', 'uploads', album), (err, files) => {
 
             if (err) {

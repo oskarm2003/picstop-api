@@ -2,7 +2,6 @@ import { IncomingMessage, ServerResponse } from "http"
 import parseRequestData from "../../utils/parse_request._data"
 import { addTag, countTag, getPhotoTags, getTagged, removeTagFromPhoto } from "../../model/tags/tags_model"
 import { cc } from "../.."
-import { readDescriptor } from "../../model/photo/descriptor_model"
 import authorize from "../../utils/authorization"
 import isEmptyString from "../../utils/isEmptyString"
 
@@ -15,23 +14,19 @@ const tagController = async (req: IncomingMessage, res: ServerResponse) => {
         let data = await parseRequestData(req)
 
         //when author arg omitted
-        if (data.author === undefined) {
-            data.author = 'anonymous'
+        if (data.photo_author === undefined) {
+            data.photo_author = 'anonymous'
         }
 
         //if wrong input format
-        if (isEmptyString(data.tag_name, data.photo_name, data.author)) {
+        if (isEmptyString(data.tag_name, data.photo_name, data.photo_author)) {
             res.statusCode = 418
             res.end('wrong input data format')
             return
         }
 
         //authortization
-        let album = '_shared'
-        if (data.author != 'anonymous' && data.author != '_shared') {
-            if (!authorize(req, res, data.author)) return
-            album = data.author
-        }
+        if (authorize(req, res, data.photo_author) === false) return
 
         //check tag format
         const forbidden_chars = ['/', '\\', '.', ',']
@@ -43,17 +38,11 @@ const tagController = async (req: IncomingMessage, res: ServerResponse) => {
             }
         }
 
-        //get photo id
-        readDescriptor(album, data.photo_name)
-            .then(async result => {
-                if (Array.isArray(result)) {
-                    throw 'error'
-                }
-                await addTag(data.tag_name, result.id)
-                    .then(() => {
-                        res.statusCode = 201
-                        res.end('success')
-                    })
+        //add tag
+        addTag(data.tag_name, data.photo_author, data.photo_name)
+            .then(() => {
+                res.statusCode = 201
+                res.end('success')
             })
             .catch(err => {
                 cc.error(err)
@@ -103,32 +92,24 @@ const tagController = async (req: IncomingMessage, res: ServerResponse) => {
     else if (req.method === 'GET' && req.url?.match(/^\/tags\/(.(?!\\)(?!\.)(?!,))+\/(.(?!\\)(?!\.)(?!,))+$/)) {
 
         const url_segments = req.url.split('/')
-        let album_name = url_segments[2]
+        let author = url_segments[2]
         const photo_name = url_segments[3]
 
-        if (album_name === 'anonymous' || album_name === '_shared') {
-            album_name = '_shared'
+        if (author === '_shared') {
+            author = 'anonymous'
         }
 
-        if (isEmptyString(album_name, photo_name)) {
+        if (isEmptyString(author, photo_name)) {
             res.statusCode = 422
             res.end('wrong input')
             return
         }
 
-        readDescriptor(album_name, photo_name)
+        getPhotoTags(photo_name, author)
             .then(data => {
-                if (Array.isArray(data)) {
-                    res.statusCode = 404
-                    res.end('photo does not exist')
-                    return
-                }
-                getPhotoTags(data.id)
-                    .then(data => {
-                        res.end(JSON.stringify(data))
-                    })
+                res.setHeader('Content-Type', 'application/json')
+                res.end(JSON.stringify(data))
             })
-
             .catch(err => {
                 cc.error(err)
                 res.statusCode = 400
@@ -148,39 +129,27 @@ const tagController = async (req: IncomingMessage, res: ServerResponse) => {
             return
         }
 
-        let album_name = url_segments[2]
+        let photo_author = url_segments[2]
         const photo_name = url_segments[3]
         const tag_name = url_segments[4]
 
-        if (album_name === 'anonymous' || album_name === '_shared') {
-            album_name = "_shared"
+        if (photo_author === '_shared') {
+            photo_author = "anonymous"
         }
 
-        if (isEmptyString(album_name, photo_name, tag_name)) {
+        if (isEmptyString(photo_author, photo_name, tag_name)) {
             res.statusCode = 422
             res.end('wrong input')
             return
         }
 
-        //get photo id
-        readDescriptor(album_name, photo_name)
-            .then(data => {
-                if (Array.isArray(data)) {
-                    throw 'photo not found'
-                }
-
-                console.log(data.album);
-
-
-                //authorization
-                if (data.album != '_shared' && !authorize(req, res, data.author)) {
-                    return
-                }
-
-                removeTagFromPhoto(tag_name, data.id)
-                    .then(() => res.end('success'))
+        //remove
+        removeTagFromPhoto(tag_name, photo_author, photo_name)
+            .then(() => {
+                res.statusCode = 204
+                res.end()
             })
-            .catch(err => {
+            .catch((err) => {
                 cc.error(err)
                 res.statusCode = 400
                 res.end('error')

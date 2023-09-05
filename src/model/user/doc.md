@@ -32,3 +32,24 @@ authorizes the user by given token.
 after decoding the token checks if it is valid
 input: token
 output: false | username
+
+# prepareVerification
+Encodes the given email to the token and sends the verification message to the given email address.  
+input: email: string
+output: token with {email: string}
+
+# verifyEmail
+verifies email given in the token by updating the 'verified' db record.  
+input: token: string
+output: void promise
+
+# requestPasswordChange
+Checks if the email is verified and if so, sends the password change form link to the given email address.  
+The password change form link contains token with {email: string} that was previously signed with private token key.  
+input: email: string
+output: void promise
+
+# changeForgottenPassword
+Decodes the given token and changes the password of the user with email encrypted in the token.  
+input: {token: string, password: string}
+output: promise with 'success' or 'expired'

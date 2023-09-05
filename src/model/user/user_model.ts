@@ -3,6 +3,7 @@ import { cc } from "../../index"
 import CryptoMachine from "../../utils/crypto_machine"
 import { dbQuery } from "../database/database_model"
 import { IncomingMessage } from 'http'
+import Mailer from '../../utils/mailer'
 require('dotenv').config()
 
 interface t_user { username: string, email: string, password?: string, id?: number }
@@ -99,7 +100,7 @@ async function createUser({ username, email, password }:
                 }
 
                 //proceed
-                dbQuery(`INSERT INTO users (username, email, password) VALUES ('${username}','${email}','${hashed_password}')`)
+                dbQuery(`INSERT INTO users (username, email, password, update_timestamp) VALUES ('${username}','${email}','${hashed_password}', '${Date.now()}')`)
                     .then(() => resolve('success'))
             })
             //error handling
