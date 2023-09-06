@@ -6,7 +6,7 @@ Uses model/user to manage users' data in the database.
 # GET /user
 NO INPUT
 
-POSSIBLE OUTCOMES:
+POSSIBLE OUTCOMES:  
     200 - user data {id, username, email}
     400 -error
 
@@ -51,7 +51,7 @@ INPUT:
     email: string
 }  
 
-POSSIBLE OUTCOMES:
+POSSIBLE OUTCOMES:  
     204 - success   
     400 - error   
     404 - not found  
@@ -64,7 +64,7 @@ If the account with given email does not exist the application sends an error.
 INPUT in the url
     [token] - string - tokenized {email:string} 
 
-POSSIBLE OUTCOMES:
+POSSIBLE OUTCOMES:  
     200 - html - success  
     400 - error
 
@@ -77,7 +77,7 @@ INPUT:
     email: string
 }
 
-POSSIBLE OUTCOMES:
+POSSIBLE OUTCOMES:  
     204 - no content - success  
     400 - error
 
@@ -91,7 +91,7 @@ INPUT:
     password: string
 }
 
-POSSIBLE OUTCOMES:
+POSSIBLE OUTCOMES:  
 204 - no content - success  
 400 - error  
 498 - token expired  
