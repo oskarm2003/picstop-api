@@ -142,8 +142,16 @@ function getTagged(tag_name: string): Promise<Array<t_tagged>> {
                 resolve(output)
             })
             .catch(err => reject(err))
+    })
+}
+
+function deleteTagsByPhotoAuthor(author: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+        dbQuery(`DELETE tags FROM tags INNER JOIN photos ON photos.id=photo_id WHERE photos.author='${author}'`)
+            .then(() => resolve())
+            .catch(err => reject(err))
 
     })
 }
 
-export { countTag, allTags, addTag, removeTagFromPhoto, removeAllTags, getPhotoTags, getTagged }
+export { countTag, allTags, addTag, removeTagFromPhoto, removeAllTags, getPhotoTags, getTagged, deleteTagsByPhotoAuthor }

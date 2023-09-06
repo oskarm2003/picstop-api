@@ -3,7 +3,6 @@ import { cc } from "../../index"
 import CryptoMachine from "../../utils/crypto_machine"
 import { dbQuery } from "../database/database_model"
 import { IncomingMessage } from 'http'
-import Mailer from '../../utils/mailer'
 require('dotenv').config()
 
 interface t_user { username: string, email: string, password?: string, id?: number }
@@ -202,5 +201,16 @@ function authorizeUser(req: IncomingMessage): false | string {
 
 }
 
-export { getAllUsers, createUser, userLogin, generateToken, getUserData, authorizeUser }
+function deleteUser(username: string): Promise<void> {
+
+    return new Promise((resolve, reject) => {
+
+        //remove user
+        dbQuery(`DELETE FROM users WHERE (username='${username}')`)
+            .then(() => resolve())
+            .catch(err => reject(err))
+    })
+}
+
+export { getAllUsers, createUser, userLogin, generateToken, getUserData, authorizeUser, deleteUser }
 export type { t_user }

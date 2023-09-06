@@ -53,3 +53,8 @@ output: void promise
 Decodes the given token and changes the password of the user with email encrypted in the token.  
 input: {token: string, password: string}
 output: promise with 'success' or 'expired'
+
+# deleteUser
+Deletes the user from the database.  
+input: username: string
+output: void promise

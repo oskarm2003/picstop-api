@@ -30,3 +30,8 @@ output: promise with an Array<string>
 Removes all tags of the given photo.  
 input: photo_id: number  
 output: promise with true
+
+# deleteTagsByPhotoAuthor
+Removes the tags connected to the photos by the given author.  
+input: author: string
+output: void promise

@@ -102,7 +102,14 @@ function deleteDescriptor(album: string, name: string): Promise<true> {
             .catch(err => reject(err))
 
     })
-
 }
 
-export { createDescriptor, readDescriptor, deleteDescriptor }
+function deleteDescriptorsByAuthor(author: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+        dbQuery(`DELETE FROM photos WHERE author='${author}'`)
+            .then(() => resolve())
+            .catch(err => reject(err))
+    })
+}
+
+export { createDescriptor, readDescriptor, deleteDescriptor, deleteDescriptorsByAuthor }

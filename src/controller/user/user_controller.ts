@@ -1,10 +1,13 @@
 import { IncomingMessage, ServerResponse } from "http";
-import { createUser, generateToken, getAllUsers, getUserData, userLogin } from "../../model/user/user_model";
+import { createUser, deleteUser, generateToken, getAllUsers, getUserData, userLogin } from "../../model/user/user_model";
 import parseRequestData from "../../utils/parse_request._data";
 import { cc } from "../../index";
 import isEmptyString from "../../utils/isEmptyString";
 import { changeForgottenPassword, requestPasswordChange } from "../../model/user/password_change_model";
 import { prepareVerification, verifyEmail } from "../../model/user/email_verification";
+import authorize from "../../utils/authorization";
+import { deleteTagsByPhotoAuthor } from "../../model/tags/tags_model";
+import { deleteDescriptorsByAuthor } from "../../model/photo/descriptor_model";
 
 const userController = async (req: IncomingMessage, res: ServerResponse) => {
 
@@ -230,6 +233,33 @@ const userController = async (req: IncomingMessage, res: ServerResponse) => {
                     res.end('expired')
                     return
                 }
+                res.statusCode = 204
+                res.end()
+            })
+            .catch(err => {
+                cc.error(err)
+                res.statusCode = 400
+                res.end()
+            })
+
+    }
+
+    //delete user and all corresponding data
+    else if (req.method === 'DELETE' && req.url?.match(/^\/user\/(.(?!\\)(?!\/))+$/)) {
+
+        //authorize the user
+        const username = req.url.split('/')[2]
+        if (!authorize(req, res, username)) {
+            return
+        }
+
+        //proceed
+        Promise.all([
+            deleteTagsByPhotoAuthor(username),
+            deleteDescriptorsByAuthor(username),
+            deleteUser(username)
+        ])
+            .then(() => {
                 res.statusCode = 204
                 res.end()
             })

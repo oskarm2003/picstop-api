@@ -54,3 +54,7 @@ Deletes the descriptor.
 input: album: stirng, name: string
 output: promise
 
+# deleteDescriptorsByAuthor
+Deletes all the descriptors of the photo by given author.  
+input: author: string  
+output: void promise

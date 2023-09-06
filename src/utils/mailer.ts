@@ -18,7 +18,7 @@ class Mailer {
     //mail templates
     private static templates = {
         verification: (url: string) => `Click on the link to verify your PHOTOS_API account:\n${url}\n\nLink is active for one hour.\nThis message was send automatically, please do not respond.\nIgnore if you think you should not be the receiver.`,
-        password_change: (url: string) => 'You can reset your password with the link below:\n' + url
+        password_change: (url: string) => `You can reset your password with the link below:\n${url}\n\nLink is active for five minutes.\nThis message was send automatically, please do not respond.\nIgnore if you think you should not be the receiver.`
     }
 
     //send mails
