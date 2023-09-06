@@ -4,17 +4,17 @@ Uses model/photo to manage the files saved in the uploads directory and their de
 
 
 # POST /photo  
- INPUT as multipart/formdata: 
-{
-    file: File,
-    name: string
-}  
-
-POSSIBLE OUTCOMES:
-    201 - created
-    400 - error
-    401 - authorization failed
-    418 - wrong data format or not enough data
+ INPUT as multipart/formdata:  
+{  
+    file: File,  
+    name: string  
+}    
+ 
+POSSIBLE OUTCOMES:  
+    201 - created  
+    400 - error  
+    401 - authorization failed  
+    418 - wrong data format or not enough data  
 
 
 Posts a new photo - adds the posted file to the particular album in the uploads directory and adds a descriptor to the database.  
@@ -25,30 +25,30 @@ If opperation is not authorized the photo will be posted with the anonymous auth
 Authorize with 'Bearer [token]' in the authorization header.  
 
 # GET /photo/file/[?author]/[file_name]
-INPUT in the url
-    [?author] - string, can be omitted
-    [file_name] - string
-
-POSSIBLE OUTCOMES:  
-    200 - success
-    400 - error
-    404 - album not found / file not found
-    418 - wrong data format
-
+INPUT in the url  
+    [?author] - string, can be omitted  
+    [file_name] - string  
+  
+POSSIBLE OUTCOMES:   
+    200 - success  
+    400 - error  
+    404 - album not found / file not found  
+    418 - wrong data format  
+  
 
 Sends a photo file with given name.  
 If the photo has an author provide its' name right after the /photo/ string. Omit if there is no author.   
 The name of the file should be provided as the last argument.  
 
 
-# GET /photo/descriptor/[?author]/[?file_name]
-INPUT in the url
-    [?author] - string, can be omitted
-    [?file_name] - string, can be omitted
+# GET /photo/descriptor/[?author]/[?file_name]  
+INPUT in the url  
+    [?author] - string, can be omitted  
+    [?file_name] - string, can be omitted  
 
-POSSIBLE OUTCOMES:
-    200 - JSON descriptor
-    400 - error
+POSSIBLE OUTCOMES:  
+    200 - JSON descriptor  
+    400 - error  
 
 
 Sends a photo description in the JSON format.  
@@ -58,22 +58,22 @@ If you want only the details about a specific file provide file name after the /
 
 
 # DELETE /photo/[author]/[file_name]
-INPUT is the url:
-    [author] - string
-    [file_name] - string
+INPUT is the url:  
+    [author] - string  
+    [file_name] - string  
 
-POSSIBLE OUTCOMES:
-    204 - when deleted
-    400 - error / wrong arguments format
-    401 - authorization failed
+POSSIBLE OUTCOMES:  
+    204 - when deleted  
+    400 - error / wrong arguments format  
+    401 - authorization failed  
 
 Deletes the file and corresponding data (descriptor, tags and comments).  
 Operation requires authorization - 'Bearer [token]' in the authorization header.    
 
 # DELETE /photo
-NO INPUT
+NO INPUT  
 
-OUTCOME:
-    204 - no content
+OUTCOME:  
+    204 - no content  
 
 Cleans up all the empty user directories in the uploads.    
