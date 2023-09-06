@@ -52,8 +52,9 @@ INPUT:
 }  
 
 POSSIBLE OUTCOMES:
-    204 - success
-    400 - error
+    204 - success  
+    400 - error  
+    404 - not found
 
 
 Encodes the given email and sends the account verification email to its' address.  
