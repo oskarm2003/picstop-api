@@ -16,10 +16,16 @@ const userController = async (req: IncomingMessage, res: ServerResponse) => {
 
         cc.notify(' users data requested')
 
-        const output = await getAllUsers()
-        res.setHeader('Content-Type', 'application/json')
-        res.end(JSON.stringify(output))
-        return
+        await getAllUsers()
+            .then(data => {
+                res.setHeader('Content-Type', 'application/json')
+                res.end(JSON.stringify(data))
+            })
+            .catch(err => {
+                cc.error(err)
+                res.statusCode = 400
+                res.end('error')
+            })
 
     }
 
