@@ -1,6 +1,6 @@
 import { IncomingMessage, ServerResponse } from "http"
 import parseRequestData from "../../utils/parse_request._data"
-import { addTag, countTag, getPhotoTags, getTagged, removeTagFromPhoto } from "../../model/tags/tags_model"
+import { addTag, addTags, countTag, getPhotoTags, getTagged, removeTagFromPhoto } from "../../model/tags/tags_model"
 import { cc } from "../.."
 import authorize from "../../utils/authorization"
 import isEmptyString from "../../utils/isEmptyString"
@@ -20,7 +20,7 @@ const tagController = async (req: IncomingMessage, res: ServerResponse) => {
 
         //if wrong input format
         if (isEmptyString(data.tag_name, data.photo_name, data.photo_author)) {
-            res.statusCode = 418
+            res.statusCode = 422
             res.end('wrong input data format')
             return
         }
@@ -55,10 +55,38 @@ const tagController = async (req: IncomingMessage, res: ServerResponse) => {
             })
     }
 
+    //post many tags at once
+    if (req.method === 'POST' && req.url === '/tags') {
+
+        //get data
+        let data = await parseRequestData(req)
+
+        if (isEmptyString(data.tag_names, data.photo_name, data.photo_author)) {
+            res.statusCode = 422
+            res.end('wrong input data format')
+            return
+        }
+
+        //authortization
+        if (authorize(req, res, data.photo_author) === false) return
+
+
+        addTags(data.tag_names, data.photo_author, data.photo_name)
+            .then(() => {
+                res.end('success')
+            })
+            .catch(err => {
+                console.error(err)
+                res.statusCode = 400
+                res.end('error')
+            })
+    }
+
+
     //get all photos' names and albums with given tag
     else if (req.method === 'GET' && req.url?.match(/^\/tag\/photos\/(.(?!\\)(?!\.)(?!,))+$/)) {
 
-        const tag_name = req.url.split('/')[3]
+        const tag_name = decodeURIComponent(req.url).split('/')[3]
         getTagged(tag_name)
             .then(data => {
                 res.setHeader('Content-Type', 'application/json')
@@ -75,7 +103,7 @@ const tagController = async (req: IncomingMessage, res: ServerResponse) => {
     //read tags popularity
     else if (req.method === 'GET' && req.url?.match(/^\/tag\/popularity\/(.(?!\\)(?!\.)(?!,))+$/)) {
 
-        const tag_name = req.url.split('/')[3]
+        const tag_name = decodeURIComponent(req.url).split('/')[3]
 
         countTag(tag_name)
             .then(data => {
@@ -91,7 +119,7 @@ const tagController = async (req: IncomingMessage, res: ServerResponse) => {
     //get photo's tags
     else if (req.method === 'GET' && req.url?.match(/^\/tags\/(.(?!\\)(?!\.)(?!,))+\/(.(?!\\)(?!\.)(?!,))+$/)) {
 
-        const url_segments = req.url.split('/')
+        const url_segments = decodeURIComponent(req.url).split('/')
         let author = url_segments[2]
         const photo_name = url_segments[3]
 
@@ -120,7 +148,7 @@ const tagController = async (req: IncomingMessage, res: ServerResponse) => {
     //delete tag from the photo
     else if (req.method === 'DELETE' && req.url?.match(/^\/tag\/(.(?!\\)(?!\.)(?!,))+\/(.(?!\\)(?!\.)(?!,))+\/(.(?!\\)(?!\.)(?!,))+$/)) {
 
-        const url_segments = req.url.split('/')
+        const url_segments = decodeURIComponent(req.url).split('/')
 
         //invalid data in the url
         if (url_segments.length != 5) {

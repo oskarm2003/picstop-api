@@ -1,5 +1,7 @@
+import { readdir, readdirSync } from "fs"
 import { cc } from "../.."
 import { dbQuery } from "../database/database_model"
+import path from "path"
 
 function createDescriptor(path: string): Promise<boolean> {
 
@@ -112,4 +114,31 @@ function deleteDescriptorsByAuthor(author: string): Promise<void> {
     })
 }
 
-export { createDescriptor, readDescriptor, deleteDescriptor, deleteDescriptorsByAuthor }
+function getRandomDescriptors(cuantity: number): Promise<Array<t_descriptor>> {
+    return new Promise(async (resolve, reject) => {
+
+        dbQuery(`SELECT * FROM photos ORDER BY rand() LIMIT ${cuantity}`)
+            .then(data => {
+                if (Array.isArray(data)) {
+                    const output: Array<t_descriptor> = new Array()
+                    for (let row of data) {
+                        output.push({
+                            id: row.id,
+                            name: row.name,
+                            author: row.author,
+                            album: row.album,
+                            timestamp: row.timestamp
+                        })
+                    }
+                    resolve(output)
+                }
+                else {
+                    reject('wrong database output format')
+                }
+            })
+            .catch(err => reject(err))
+
+    })
+}
+
+export { createDescriptor, readDescriptor, deleteDescriptor, deleteDescriptorsByAuthor, getRandomDescriptors }

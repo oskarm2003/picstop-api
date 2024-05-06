@@ -6,6 +6,8 @@ import tagController from './controller/tag/tag_controller';
 import commentsController from './controller/comments/comments_controller';
 import photoController from './controller/photo/photo_controller';
 import { readFile } from 'fs';
+import photoSearchController from './controller/photo_search/photo_search_controller';
+import { createDB } from './model/database/database_model'
 require('dotenv').config()
 
 //port number
@@ -22,13 +24,30 @@ global.root_dir = path.join(__dirname, '..')
 global.uploads_path = path.join(root_dir, "dist", "uploads")
 global.db_name = 'photos_db'
 
+//init DB
+createDB(global.db_name)
 
 export const cc = new ColorConsole()
 // cc.omit.push('notify')
 export const server = http.createServer((req: IncomingMessage, res: ServerResponse) => {
 
+
     //default headers
-    res.setHeader('Access-Controll-Allow-Origin', '*')
+    const trusted = ['http://localhost:5173']
+    for (let el of trusted) {
+        if (el === req.headers.origin)
+            res.setHeader('Access-Control-Allow-Origin', req.headers.origin)
+    }
+
+    res.setHeader('Access-Control-Allow-Headers', 'authorization');
+    res.setHeader('Access-Control-Allow-Methods', '*');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+
+    if (req.method === 'OPTIONS') {
+        res.end()
+        return
+    }
+
     res.setHeader('Content-Type', 'text/plain')
 
     global.server_url = 'http://' + req.headers.host
@@ -46,9 +65,16 @@ export const server = http.createServer((req: IncomingMessage, res: ServerRespon
         userController(req, res)
     }
 
-    //forward to files controller
     else if (direction === 'photo') {
-        photoController(req, res)
+
+        if (req.url.split('/')[2] === 'search') {
+            //forward to files search controller
+            photoSearchController(req, res)
+        }
+        else {
+            //forward to files controller
+            photoController(req, res)
+        }
     }
 
     //forward to tags controller

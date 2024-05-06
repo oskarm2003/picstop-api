@@ -11,6 +11,8 @@ const authorize = (req: IncomingMessage, res: ServerResponse, who?: string): boo
     }
 
     let authorization = authorizeUser(req)
+    // console.log(authorization);
+
     if (!authorization) {
         res.statusCode = 401
         res.end('authorization failed')

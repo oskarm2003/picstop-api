@@ -20,6 +20,23 @@ When author argument is set to 'anonymous' or omitted completely the _shared alb
 Tag name cannot include: / \ , .  
 Operation requires authorization - 'Bearer [token]' in the authorization header.    
 
+
+# POST /tags
+INPUT: {
+    tag_names: string[],
+    photo_author: string,
+    photo_name: string
+}
+
+POSSIBLE OUTCOMES:
+    201 - created
+    400 - error
+
+Adds several tags at once. Checks for duplicates and empty records and omits them.
+Operation requires authorization - 'Bearer [token]' in the authorization header.    
+
+
+
 # GET /tag/popularity/[tag_name]
 INPUT in the url 
     [tag_name] - string

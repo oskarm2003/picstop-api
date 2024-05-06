@@ -12,11 +12,26 @@ import { deleteDescriptorsByAuthor } from "../../model/photo/descriptor_model";
 const userController = async (req: IncomingMessage, res: ServerResponse) => {
 
     //get users data
-    if (req.method === 'GET' && req.url === '/user') {
-
-        cc.notify(' users data requested')
+    if (req.method === 'GET' && req.url === '/user/data') {
 
         await getAllUsers()
+            .then(data => {
+                res.setHeader('Content-Type', 'application/json')
+                res.end(JSON.stringify(data))
+            })
+            .catch(err => {
+                cc.error(err)
+                res.statusCode = 400
+                res.end('error')
+            })
+
+    }
+
+    //get one user data
+    if (req.method === 'GET' && req.url?.match(/^\/user\/data\/(.(?!\\)(?!\.)(?!,))+$/)) {
+
+        const user = req.url.split('/')[3]
+        getUserData(user)
             .then(data => {
                 res.setHeader('Content-Type', 'application/json')
                 res.end(JSON.stringify(data))
@@ -32,8 +47,6 @@ const userController = async (req: IncomingMessage, res: ServerResponse) => {
     //register a user
     else if (req.method === 'POST' && req.url === '/user/new') {
 
-        cc.notify('user register attempt')
-
         const data = await parseRequestData(req)
             //errro handling    
             .catch(() => {
@@ -44,7 +57,7 @@ const userController = async (req: IncomingMessage, res: ServerResponse) => {
 
         //if data format not valid
         if (isEmptyString(data.username, data.email, data.password)) {
-            res.statusCode = 418
+            res.statusCode = 422
             res.end('wrong data format, provide {username,email,password}')
             return
         }
@@ -57,6 +70,13 @@ const userController = async (req: IncomingMessage, res: ServerResponse) => {
                 res.end('forbidden username')
                 return
             }
+        }
+
+        //if is number
+        if (typeof data.username === 'number') {
+            res.statusCode = 403
+            res.end('forbidden username')
+            return
         }
 
         createUser(data)
@@ -75,7 +95,7 @@ const userController = async (req: IncomingMessage, res: ServerResponse) => {
                     res.end('error')
                 }
                 else if (result === 'wrong data format') {
-                    res.statusCode = 418
+                    res.statusCode = 422
                     res.end('wrong data format')
                 }
             })
@@ -101,7 +121,7 @@ const userController = async (req: IncomingMessage, res: ServerResponse) => {
 
         //if wrong data format
         if (isEmptyString(data.password, data.username) && isEmptyString(data.password, data.email)) {
-            res.statusCode = 418
+            res.statusCode = 422
             res.end('not enough data')
             return
         }
@@ -112,7 +132,7 @@ const userController = async (req: IncomingMessage, res: ServerResponse) => {
                     res.statusCode = 401
                 }
                 else if (result === 'not enough data') {
-                    res.statusCode = 418
+                    res.statusCode = 422
                 }
                 else if (result === 'not found') {
                     res.statusCode = 404
@@ -120,9 +140,15 @@ const userController = async (req: IncomingMessage, res: ServerResponse) => {
                 else if (result === 'success') {
                     //successfully logged in
                     if (data.username === undefined) {
-                        const user_data = await getUserData({ email: data.email })
+                        const user_data = await getUserData(data.email)
+                            .catch(err => {
+                                cc.error(err)
+                                res.statusCode = 400
+                                res.end('error')
+                            })
+
                         //on no data
-                        if (user_data === null) {
+                        if (user_data?.username === undefined) {
                             res.statusCode = 400
                             res.end('error')
                             return
@@ -159,7 +185,12 @@ const userController = async (req: IncomingMessage, res: ServerResponse) => {
         }
 
         //check if user with given email exists
-        const user = await getUserData({ email: data.email })
+        const user = await getUserData(data.email)
+            .catch(err => {
+                cc.error(err)
+                res.statusCode = 400
+                res.end('error')
+            })
         if (user === null) {
             res.statusCode = 404
             res.end('account not found')
@@ -254,7 +285,7 @@ const userController = async (req: IncomingMessage, res: ServerResponse) => {
     else if (req.method === 'DELETE' && req.url?.match(/^\/user\/(.(?!\\)(?!\/))+$/)) {
 
         //authorize the user
-        const username = req.url.split('/')[2]
+        const username = decodeURIComponent(req.url).split('/')[2]
         if (!authorize(req, res, username)) {
             return
         }

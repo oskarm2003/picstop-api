@@ -71,6 +71,49 @@ function addTag(tag_name: string, photo_author: string, photo_name: string): Pro
     })
 }
 
+//add several tags
+function addTags(tag_names: string[], photo_author: string, photo_name: string): Promise<void> {
+
+    return new Promise((resolve, reject) => {
+
+        dbQuery(`SELECT id FROM photos WHERE (name='${photo_name}' and author='${photo_author}')`)
+            .then(result => {
+                if (!Array.isArray(result)) throw 'invalid database response'
+                const photo_id = result[0].id
+
+                //eliminate duplicates and empty records
+                const uniques_arr: string[] = []
+                for (let i = 0; i < tag_names.length; i++) {
+                    let allow_push = true
+                    for (let el of uniques_arr) {
+                        if (el === tag_names[i] || el === '') {
+                            allow_push = false
+                        }
+                    }
+                    if (allow_push) uniques_arr.push(tag_names[i])
+                }
+
+
+                //main logic
+                let query = `INSERT INTO tags(photo_id, tag_name) VALUES `
+                for (let tag of uniques_arr) {
+                    query += `(${photo_id},'${tag}'),`
+                }
+                query = query.slice(0, -1)
+                query += ';'
+
+                //make last query
+                dbQuery(query)
+                    .then(() => resolve())
+                    .catch(err => { throw err })
+
+
+            })
+            .catch(err => reject(err))
+    })
+
+}
+
 //remove tag from the photo
 function removeTagFromPhoto(tag_name: string, photo_author: string, photo_name: string): Promise<true> {
 
@@ -96,10 +139,15 @@ function getPhotoTags(photo_name: string, photo_author: string): Promise<Array<s
                 }
 
                 const output: Array<string> = new Array()
-                for (let row of data) {
+                for (let row of data)
                     output.push(row.tag_name)
-                }
+
                 resolve(output)
+
+            })
+            .catch(err => {
+                console.log("error getting tags");
+                reject(err)
             })
     })
 }
@@ -154,4 +202,4 @@ function deleteTagsByPhotoAuthor(author: string): Promise<void> {
     })
 }
 
-export { countTag, allTags, addTag, removeTagFromPhoto, removeAllTags, getPhotoTags, getTagged, deleteTagsByPhotoAuthor }
+export { countTag, allTags, addTag, addTags, removeTagFromPhoto, removeAllTags, getPhotoTags, getTagged, deleteTagsByPhotoAuthor }

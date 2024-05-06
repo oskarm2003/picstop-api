@@ -51,7 +51,7 @@ const commentsController = async (req: IncomingMessage, res: ServerResponse) => 
     else if (req.method === 'GET' && req.url?.match(/^\/comment\/(.(?!\\)(?!\.)(?!,))+\/(.(?!\\)(?!\.)(?!,))+$/)) {
 
         //get and validate data
-        const url_segments = req.url.split('/')
+        const url_segments = decodeURIComponent(req.url).split('/')
         let photo_author = url_segments[2]
         const photo_name = url_segments[3]
 
@@ -116,7 +116,7 @@ const commentsController = async (req: IncomingMessage, res: ServerResponse) => 
     else if (req.method === 'DELETE' && req.url?.match(/^\/comment\/(.(?!\\)(?!\.)(?!,))+$/)) {
 
         //get and validate data
-        let comment_id: string | number = req.url.split('/')[2]
+        let comment_id: string | number = decodeURIComponent(req.url).split('/')[2]
 
         try {
             comment_id = parseInt(comment_id)

@@ -33,35 +33,24 @@ async function getAllUsers(): Promise<Array<t_user>> {
 }
 
 //get user data
-async function getUserData({ username, email, id }: { username?: string, email?: string, id?: number }): Promise<t_user | null> {
+async function getUserData(user: string | number): Promise<t_user> {
 
-    return new Promise(async (resolve) => {
+    return new Promise((resolve, reject) => {
 
-        let response
-        if (username != undefined) {
-            response = await dbQuery(`SELECT id,username,email FROM users WHERE username='${username}'`)
-        }
-        else if (email != undefined) {
-            response = await dbQuery(`SELECT id,username,email FROM users WHERE email='${email}'`)
-        }
-        else if (id != undefined) {
-            response = await dbQuery(`SELECT id,username,email FROM users WHERE id='${id}'`)
-        }
-        else {
-            resolve(null)
-            return
-        }
+        dbQuery(`SELECT id,username,email FROM users WHERE (id='${user}' or username='${user}' or email='${user}')`)
+            .then(response => {
+                if (!Array.isArray(response) || typeof response[0] != 'object') {
+                    throw 'invalid database output'
+                }
 
-        if (!Array.isArray(response) || typeof response[0] != 'object') {
-            resolve(null)
-            return
-        }
+                resolve({
+                    id: response[0].id,
+                    username: response[0].username,
+                    email: response[0].email
+                })
+            })
+            .catch(err => reject(err))
 
-        resolve({
-            id: response[0].id,
-            username: response[0].username,
-            email: response[0].email
-        })
     })
 
 }

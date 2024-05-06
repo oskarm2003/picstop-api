@@ -1,6 +1,6 @@
 import { IncomingMessage, ServerResponse } from "http";
 import { cleanUp, deleteImage, formatFormData, getImage, postImage, removeAsset } from "../../model/photo/file_model";
-import { createDescriptor, deleteDescriptor, readDescriptor } from "../../model/photo/descriptor_model";
+import { createDescriptor, deleteDescriptor, getRandomDescriptors, readDescriptor } from "../../model/photo/descriptor_model";
 import { cc } from "../..";
 import { removeAllTags } from "../../model/tags/tags_model";
 import isEmptyString from "../../utils/isEmptyString";
@@ -71,20 +71,38 @@ const photoController = async (req: IncomingMessage, res: ServerResponse) => {
             })
     }
 
+    //GET random descriptors
+    else if (req.method === 'GET' && req.url?.match(/^\/photo\/descriptor\/random\/[0-9]+$/)) {
+
+        let cuantity = parseInt(req.url.split('/')[4])
+        //cuantity max 60
+        if (cuantity > 60) cuantity = 60
+        getRandomDescriptors(cuantity)
+            .then(data => {
+                res.setHeader('Content-Type', 'application/json')
+                res.end(JSON.stringify(data))
+            })
+            .catch(err => {
+                cc.error(err)
+                res.statusCode = 400
+                res.end('error')
+            })
+    }
+
     //GET the photo descriptors
     else if (req.method === 'GET' && req.url?.match(/^\/photo\/descriptor(\/(.(?!\\))*)?$/gm)) {
 
         //handle the url
-        const url_segments = req.url.split('/')
+        const url_segments = decodeURIComponent(req.url).split('/')
         if (url_segments.length > 5) {
-            res.statusCode = 418
+            res.statusCode = 422
             res.end('too many arguments')
             return
         }
         let album = url_segments[3]
         const file_name = url_segments[4]
 
-        if (album === undefined) {
+        if (album === 'anonymous') {
             album = '_shared'
         }
 
@@ -103,9 +121,9 @@ const photoController = async (req: IncomingMessage, res: ServerResponse) => {
     //GET photo by given name
     else if (req.method === 'GET' && req.url?.match(/^\/photo\/file\/(.(?!\\))*$/gm)) {
 
-        const url_segments = req.url.split('/')
+        const url_segments = decodeURIComponent(req.url).split('/')
         if (url_segments.length > 5) {
-            res.statusCode = 418
+            res.statusCode = 422
             res.end('too many arguments')
             return
         }
@@ -118,6 +136,10 @@ const photoController = async (req: IncomingMessage, res: ServerResponse) => {
         }
         else {
             file_name = url_segments[3]
+            album = '_shared'
+        }
+
+        if (album === 'anonymous') {
             album = '_shared'
         }
 

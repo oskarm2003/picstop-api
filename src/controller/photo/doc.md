@@ -24,9 +24,9 @@ If an opperation is authorized the photo will be stored in the author's personal
 If opperation is not authorized the photo will be posted with the anonymous author and will be stored in the _shared folder.  
 Authorize with 'Bearer [token]' in the authorization header.  
 
-# GET /photo/file/[?author]/[file_name]
+# GET /photo/file/[author]/[file_name]
 INPUT in the url
-    [?author] - string, can be omitted
+    [author] - string
     [file_name] - string
 
 POSSIBLE OUTCOMES:  
@@ -37,13 +37,13 @@ POSSIBLE OUTCOMES:
 
 
 Sends a photo file with given name.  
-If the photo has an author provide its' name right after the /photo/ string. Omit if there is no author.   
+If author set to anonymous the _shared folder will be searched.  
 The name of the file should be provided as the last argument.  
 
 
-# GET /photo/descriptor/[?author]/[?file_name]
+# GET /photo/descriptor/[author]/[?file_name]
 INPUT in the url
-    [?author] - string, can be omitted
+    [author] - string
     [?file_name] - string, can be omitted
 
 POSSIBLE OUTCOMES:
@@ -53,8 +53,19 @@ POSSIBLE OUTCOMES:
 
 Sends a photo description in the JSON format.  
 First provide the author after /photo/descriptor string.  
-If you omit an author the _shared files descriptors will be sent.  
+If author is set to 'anonymous' the _shared files descriptors will be sent.  
 If you want only the details about a specific file provide file name after the /[author].  
+
+
+# GET /photo/descriptor/random/[number]
+INPUT in the url  
+    [number] - number - how many descriptors to return
+
+POSSIBLE OUTCOMES  
+    200 - descriptor JSON
+    400 - error
+
+Returns [number] random photo descriptors
 
 
 # DELETE /photo/[author]/[file_name]

@@ -50,6 +50,8 @@ function postImage(file_temp_path: string, name: string, author: string | undefi
         //specify upload dir
         let upload_dir: string
         if (author === undefined) {
+            if (!existsSync(path.join(global.uploads_path, "_shared")))
+                await createNewAlbum("_shared")
             upload_dir = path.join(global.uploads_path, "_shared")
         }
         else {
@@ -136,7 +138,7 @@ function scaleDown(path: string): Promise<boolean> {
             }
 
             //resize
-            sharp(file).resize({ width: 500 }).toFile(path)
+            sharp(file).resize({ width: desired_width, height: desired_width }).toFile(path)
                 .catch(err => {
                     cc.error(err)
                     resolve(false)
@@ -219,7 +221,7 @@ function getImage(name: string, album: string): Promise<t_get_output> {
 
                 //if found
                 if (file.startsWith(name)) {
-                    console.log(path.join(global.root_dir, 'dist', 'uploads', album, file));
+                    // console.log(path.join(global.root_dir, 'dist', 'uploads', album, file));
 
                     readFile(path.join(global.root_dir, 'dist', 'uploads', album, file), (err, data) => {
 

@@ -33,13 +33,11 @@ describe('users testing', () => {
 
     test('get one user', async () => {
 
-        const user_data = await getUserData({ username: user.username })
+        const user_data = await getUserData(user.username)
         expect(user_data?.id).not.toBeUndefined()
         expect(user_data?.username).not.toBeUndefined()
         expect(user_data?.email).not.toBeUndefined()
-        expect(await getUserData({ email: user.email })).toBeInstanceOf(Object)
-        expect(await getUserData({ id: user_data?.id })).toBeInstanceOf(Object)
-        expect(await getUserData({})).toBeNull()
+        expect(await getUserData(user.email)).toBeInstanceOf(Object)
 
     })
 

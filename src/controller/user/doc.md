@@ -3,7 +3,7 @@ User Controller handles the requests that urls' start with '/user'.
 Uses model/user to manage users' data in the database.  
 
 
-# GET /user
+# GET /user/data
 NO INPUT
 
 POSSIBLE OUTCOMES:
@@ -11,6 +11,16 @@ POSSIBLE OUTCOMES:
     400 -error
 
 Returns all users profiles (no password)
+
+# GET /user/data/[username, email or id]
+INPUT in the url
+
+POSSIBLE OUTCOMES:
+    200 - user data {username, email}
+    400 - error
+    404 - user not found
+
+Returns data about requested user.
 
 # POST /user/new
 INPUT: 
