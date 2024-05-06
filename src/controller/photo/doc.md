@@ -4,17 +4,17 @@ Uses model/photo to manage the files saved in the uploads directory and their de
 
 
 # POST /photo  
- INPUT as multipart/formdata: 
-{
-    file: File,
-    name: string
-}  
-
-POSSIBLE OUTCOMES:
-    201 - created
-    400 - error
-    401 - authorization failed
-    418 - wrong data format or not enough data
+ INPUT as multipart/formdata:  
+{  
+    file: File,  
+    name: string  
+}    
+ 
+POSSIBLE OUTCOMES:  
+    201 - created  
+    400 - error  
+    401 - authorization failed  
+    418 - wrong data format or not enough data  
 
 
 Posts a new photo - adds the posted file to the particular album in the uploads directory and adds a descriptor to the database.  
@@ -24,9 +24,9 @@ If an opperation is authorized the photo will be stored in the author's personal
 If opperation is not authorized the photo will be posted with the anonymous author and will be stored in the _shared folder.  
 Authorize with 'Bearer [token]' in the authorization header.  
 
-# GET /photo/file/[author]/[file_name]
+# GET /photo/file/[?author]/[file_name]
 INPUT in the url
-    [author] - string
+    [?author] - string, can be omitted
     [file_name] - string
 
 POSSIBLE OUTCOMES:  
@@ -41,14 +41,14 @@ If author set to anonymous the _shared folder will be searched.
 The name of the file should be provided as the last argument.  
 
 
-# GET /photo/descriptor/[author]/[?file_name]
+# GET /photo/descriptor/[?author]/[?file_name]
 INPUT in the url
-    [author] - string
+    [?author] - string, can be omitted
     [?file_name] - string, can be omitted
 
-POSSIBLE OUTCOMES:
-    200 - JSON descriptor
-    400 - error
+POSSIBLE OUTCOMES:  
+    200 - JSON descriptor  
+    400 - error  
 
 
 Sends a photo description in the JSON format.  
@@ -69,22 +69,22 @@ Returns [number] random photo descriptors
 
 
 # DELETE /photo/[author]/[file_name]
-INPUT is the url:
-    [author] - string
-    [file_name] - string
+INPUT is the url:  
+    [author] - string  
+    [file_name] - string  
 
-POSSIBLE OUTCOMES:
-    204 - when deleted
-    400 - error / wrong arguments format
-    401 - authorization failed
+POSSIBLE OUTCOMES:  
+    204 - when deleted  
+    400 - error / wrong arguments format  
+    401 - authorization failed  
 
 Deletes the file and corresponding data (descriptor, tags and comments).  
 Operation requires authorization - 'Bearer [token]' in the authorization header.    
 
 # DELETE /photo
-NO INPUT
+NO INPUT  
 
-OUTCOME:
-    204 - no content
+OUTCOME:  
+    204 - no content  
 
 Cleans up all the empty user directories in the uploads.    

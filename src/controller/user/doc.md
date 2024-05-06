@@ -6,7 +6,7 @@ Uses model/user to manage users' data in the database.
 # GET /user/data
 NO INPUT
 
-POSSIBLE OUTCOMES:
+POSSIBLE OUTCOMES:  
     200 - user data {id, username, email}
     400 -error
 
@@ -37,7 +37,7 @@ max length of the inputs:
 
 POSSIBLE OUTCOMES are:  
     201 - created  
-    400 - error 
+    400 - error  
     409 - already in use  
     418 - wrong data format  
 
@@ -49,9 +49,9 @@ Forbidden usernames: anonymous, _shared
 input: {username, password} or {email, password}  
 
 POSSIBLE OUTCOMES are:  
-    200 - token  
-    401 - authentication failed  
-    418 - wrong data format  
+    200 - token   
+    401 - authentication failed   
+    418 - wrong data format   
 
 Attempts to log in the user.    
 
@@ -61,9 +61,10 @@ INPUT:
     email: string
 }  
 
-POSSIBLE OUTCOMES:
-    204 - success
-    400 - error
+POSSIBLE OUTCOMES:  
+    204 - success   
+    400 - error   
+    404 - not found  
 
 
 Encodes the given email and sends the account verification email to its' address.  
@@ -73,8 +74,8 @@ If the account with given email does not exist the application sends an error.
 INPUT in the url
     [token] - string - tokenized {email:string} 
 
-POSSIBLE OUTCOMES:
-    200 - html - success
+POSSIBLE OUTCOMES:  
+    200 - html - success  
     400 - error
 
 Verifies user's email by the token given in the url.  
@@ -86,8 +87,8 @@ INPUT:
     email: string
 }
 
-POSSIBLE OUTCOMES:
-    204 - no content - success
+POSSIBLE OUTCOMES:  
+    204 - no content - success  
     400 - error
 
 
@@ -100,10 +101,10 @@ INPUT:
     password: string
 }
 
-POSSIBLE OUTCOMES:
-204 - no content - success
-400 - error
-498 - token expired
+POSSIBLE OUTCOMES:  
+204 - no content - success  
+400 - error  
+498 - token expired  
 
 
 Changes the forgotten password. User is verified by the token with email.  
