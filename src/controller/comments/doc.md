@@ -50,6 +50,8 @@ INPUT
 POSSIBLE OUTCOMES:
     204 - success
     400 - error
+    401 - unauthorized
+    404 - not found
     422 - wrong input format
 
 

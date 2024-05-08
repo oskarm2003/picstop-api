@@ -173,21 +173,22 @@ const photoController = async (req: IncomingMessage, res: ServerResponse) => {
             return
         }
 
-        //authorization
-        if (authorize(req, res, url_segments[2]) === false) return
-
         if (isEmptyString(url_segments[2], url_segments[3])) {
             res.statusCode = 422
             res.end('wrong input')
             return
         }
 
+        //authorization (no anonymous)
+        if (url_segments[2] != "anonymous" && authorize(req, res, url_segments[2]) === false) return
+
+
         //delete photo and all corresponding data
         Promise.all([
-            removeAllTags(url_segments[2], url_segments[3]),
-            deleteAllComments(url_segments[2], url_segments[3]),
-            deleteImage(url_segments[2], url_segments[3]),
-            deleteDescriptor(url_segments[2], url_segments[3]),
+            removeAllTags(url_segments[2], url_segments[3]).catch(err => cc.error(err)),
+            deleteAllComments(url_segments[2], url_segments[3]).catch(err => cc.error(err)),
+            deleteImage(url_segments[2], url_segments[3]).catch(err => cc.error(err)),
+            deleteDescriptor(url_segments[2], url_segments[3]).catch(err => { cc.error(err); throw new Error("photo descriptor not found") }),
         ])
             .then(() => {
                 res.statusCode = 204
