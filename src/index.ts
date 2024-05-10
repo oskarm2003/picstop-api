@@ -25,7 +25,7 @@ global.uploads_path = path.join(root_dir, "dist", "uploads")
 global.db_name = 'photos_db'
 
 //init DB
-createDB(global.db_name)
+await createDB(global.db_name)
 
 export const cc = new ColorConsole()
 // cc.omit.push('notify')
@@ -34,6 +34,8 @@ export const server = http.createServer((req: IncomingMessage, res: ServerRespon
 
     //default headers
     const trusted = ['http://localhost:5173']
+
+    // console.log("ORIGIN:", req.headers.origin);
     for (let el of trusted) {
         if (el === req.headers.origin)
             res.setHeader('Access-Control-Allow-Origin', req.headers.origin)
@@ -112,4 +114,4 @@ export const server = http.createServer((req: IncomingMessage, res: ServerRespon
 
 })
 
-server.listen(PORT, () => { console.log('listening on port ' + PORT) })
+server.listen(PORT, () => { console.log('app listening on port ' + PORT) })

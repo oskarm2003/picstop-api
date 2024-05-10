@@ -6,8 +6,8 @@
   "type": "commonjs",
   "scripts": {
     "test": "jest",
-    "dev": "webpack --mode development --watch",
-    "build": "webpack --mode prod"
+    "dev": "webpack --mode development",
+    "build": "webpack --mode production"
   },
   "author": "Oskar Marciniak",
   "license": "ISC",
@@ -31,6 +31,7 @@
     "formidable": "^3.5.0",
     "jsonwebtoken": "^9.0.1",
     "mysql": "^2.18.1",
+    "mysql2": "^3.9.7",
     "nodemailer": "^6.9.4",
     "sharp": "^0.32.4"
   }

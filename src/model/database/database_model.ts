@@ -1,19 +1,24 @@
-import * as mysql from 'mysql'
+import * as mysql from 'mysql2'
 import { cc } from '../..'
 
 //create new db
 async function createDB(name: string) {
 
-    const connection = mysql.createConnection({ host: 'localhost', user: 'root', password: '', charset: 'utf8mb4' })
-    connection.connect()
+    const connection = mysql.createConnection({ host: process.env.DB_HOSTNAME, user: process.env.DB_USERNAME, password: process.env.DB_PASSWD, charset: 'utf8mb4' })
+    connection.connect(err => {
+        if (err) {
+            cc.error("Connection Error:", err);
+            throw new Error("db conn error")
+        }
+    })
     connection.query('CREATE DATABASE IF NOT EXISTS ' + name + ' CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci', (err) => {
         if (err) {
-            cc.error('CREATE DB ERROR: ', err)
+            cc.error('CREATE DB Error: ', err)
             return false
         }
     })
     connection.query('USE ' + name)
-    connection.query('CREATE TABLE IF NOT EXISTS `users` (`id` INT NOT NULL AUTO_INCREMENT , `username` VARCHAR(30) NOT NULL , `email` VARCHAR(320) NOT NULL , `password` VARCHAR(150) NOT NULL, `verified` BOOLEAN NOT NULL, `update_timestamp` BIGINT(20) NOT NULL , PRIMARY KEY (`id`), CONSTRAINT unique_value UNIQUE (username, email));')
+    connection.query('CREATE TABLE IF NOT EXISTS `users` (`id` INT NOT NULL AUTO_INCREMENT , `username` VARCHAR(30) NOT NULL , `email` VARCHAR(320) NOT NULL , `password` VARCHAR(150) NOT NULL,`verified` BOOLEAN NOT NULL, `update_timestamp` BIGINT(20) NOT NULL , PRIMARY KEY (`id`), CONSTRAINT unique_value UNIQUE (username, email));')
     connection.query('CREATE TABLE IF NOT EXISTS photos (id INT NOT NULL AUTO_INCREMENT , name VARCHAR(64) NOT NULL , author VARCHAR(30) NOT NULL , album VARCHAR(30) NOT NULL , timestamp BIGINT(20) NOT NULL , PRIMARY KEY (`id`));')
     connection.query('CREATE TABLE IF NOT EXISTS tags (photo_id INT(16) NOT NULL , tag_name VARCHAR(64) NOT NULL ); ')
     connection.query('CREATE TABLE IF NOT EXISTS comments (id INT(11) NOT NULL AUTO_INCREMENT , photo_id INT(11) NOT NULL , author VARCHAR(30) NOT NULL , content VARCHAR(256) NOT NULL , PRIMARY KEY (`id`)) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin;')
@@ -23,7 +28,7 @@ async function createDB(name: string) {
 
 async function removeDB(name: string) {
 
-    const connection = mysql.createConnection({ host: 'localhost', user: 'root', password: '' })
+    const connection = mysql.createConnection({ host: process.env.DB_HOSTNAME, user: 'root', password: process.env.DB_PASSWD })
     connection.query('DROP DATABASE ' + name)
     connection.end()
 
@@ -39,11 +44,11 @@ async function dbQuery(query: string) {
 
         // connection pool empty
         if (connection_pool.length === 0) {
-            const connection = mysql.createConnection({ host: 'localhost', user: 'root', password: '', database: db_name, charset: 'utf8mb4' })
+            const connection = mysql.createConnection({ host: process.env.DB_HOSTNAME, user: 'root', password: process.env.DB_PASSWD, database: db_name, charset: 'utf8mb4' })
             connection.connect((err) => {
                 if (err) {
                     cc.error(err)
-                    reject('database no connection')
+                    reject('DB no connection')
                 }
                 connection_pool.push({ active_processes: 0, connection: connection })
                 callDB(query)

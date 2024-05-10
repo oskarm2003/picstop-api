@@ -81,6 +81,7 @@ async function createUser({ username, email, password }:
         //check if username or email in use
         dbQuery(`SELECT * FROM users WHERE (username='${username}' or email='${email}')`)
             .then(data => {
+
                 //if taken
                 if (Array.isArray(data) && data.length != 0) {
                     resolve('taken')
@@ -88,8 +89,14 @@ async function createUser({ username, email, password }:
                 }
 
                 //proceed
-                dbQuery(`INSERT INTO users (username, email, password, update_timestamp) VALUES ('${username}','${email}','${hashed_password}', '${Date.now()}')`)
-                    .then(() => resolve('success'))
+                dbQuery(`INSERT INTO users (username, email, password, verified, update_timestamp) VALUES ('${username}','${email}','${hashed_password}',0, '${Date.now()}')`)
+                    .then(() => {
+                        resolve('success')
+                    })
+                    .catch(err => {
+                        cc.error(err)
+                        reject(err)
+                    })
             })
             //error handling
             .catch(err => {
@@ -100,7 +107,7 @@ async function createUser({ username, email, password }:
                 }
                 else {
                     cc.error('CREATE USER ERROR: ', err)
-                    resolve('error')
+                    reject(err)
                     return
                 }
             })

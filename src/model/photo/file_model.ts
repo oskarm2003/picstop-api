@@ -11,8 +11,8 @@ import sharp from 'sharp'
 function formatFormData(req: IncomingMessage): Promise<{ name: string, file_temp_path: string }> {
 
     return new Promise((resolve, reject) => {
-        const form = new IncomingForm({ keepExtensions: true })
 
+        const form = new IncomingForm({ keepExtensions: true })
         form.parse(req, (err, fields, files) => {
 
             //error
@@ -24,15 +24,20 @@ function formatFormData(req: IncomingMessage): Promise<{ name: string, file_temp
             //too little data
             if (fields.name === undefined || files.file === undefined) {
                 reject('not enough input data')
+                return
             }
 
-            //format and return
-            const output = {
-                name: Array.isArray(fields.name) ? fields.name[0] : fields.name,
-                file_temp_path: Array.isArray(files.file) ? files.file[0].filepath : files.file.filepath
+            const name = Array.isArray(fields.name) ? fields.name[0] : fields.name
+            if (name === undefined) {
+                reject('empty name')
+                return
             }
 
-            resolve(output)
+            const file_temp_path = files.file[0].filepath
+            // const file_temp_path = Array.isArray(files.file) ? files.file[0].filepath : files.file.filepath
+
+
+            resolve({ name, file_temp_path })
 
         })
     })

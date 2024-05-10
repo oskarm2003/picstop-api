@@ -28,7 +28,7 @@ const userController = async (req: IncomingMessage, res: ServerResponse) => {
     }
 
     //get one user data
-    if (req.method === 'GET' && req.url?.match(/^\/user\/data\/(.(?!\\)(?!\.)(?!,))+$/)) {
+    else if (req.method === 'GET' && req.url?.match(/^\/user\/data\/(.(?!\\)(?!\.)(?!,))+$/)) {
 
         const user = req.url.split('/')[3]
         getUserData(user)
@@ -81,6 +81,7 @@ const userController = async (req: IncomingMessage, res: ServerResponse) => {
 
         createUser(data)
             .then(result => {
+
                 if (result === 'success') {
                     cc.success('user created')
                     res.statusCode = 201
@@ -104,6 +105,7 @@ const userController = async (req: IncomingMessage, res: ServerResponse) => {
                 res.statusCode = 400
                 res.end()
             })
+
     }
 
     //login a user
