@@ -5,7 +5,7 @@ import { dbQuery } from "../database/database_model"
 import { IncomingMessage } from 'http'
 require('dotenv').config()
 
-interface t_user { username: string, email: string, password?: string, id?: number }
+interface t_user { username: string, email: string, password?: string, id?: number, update_timestamp?: number, verified?: number }
 
 
 //get all users' data from the database
@@ -37,7 +37,7 @@ async function getUserData(user: string | number): Promise<t_user> {
 
     return new Promise((resolve, reject) => {
 
-        dbQuery(`SELECT id,username,email FROM users WHERE (id='${user}' or username='${user}' or email='${user}')`)
+        dbQuery(`SELECT * FROM users WHERE (id='${user}' or username='${user}' or email='${user}')`)
             .then(response => {
                 if (!Array.isArray(response) || typeof response[0] != 'object') {
                     throw 'invalid database output'
@@ -46,7 +46,9 @@ async function getUserData(user: string | number): Promise<t_user> {
                 resolve({
                     id: response[0].id,
                     username: response[0].username,
-                    email: response[0].email
+                    email: response[0].email,
+                    update_timestamp: response[0].update_timestamp,
+                    verified: response[0].verified,
                 })
             })
             .catch(err => reject(err))

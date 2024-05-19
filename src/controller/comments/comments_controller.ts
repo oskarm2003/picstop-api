@@ -13,6 +13,7 @@ const commentsController = async (req: IncomingMessage, res: ServerResponse) => 
         //authorization
         const response = authorize(req, res)
         if (typeof response != 'string') {
+            //response withing authorize()
             return
         }
 

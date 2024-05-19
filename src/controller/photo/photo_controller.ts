@@ -16,7 +16,10 @@ const photoController = async (req: IncomingMessage, res: ServerResponse) => {
         let author
         if (req.headers.authorization?.startsWith('Bearer ')) {
             author = authorize(req, res)
-            if (typeof author != 'string') return
+            if (typeof author != 'string') {
+                //response withing authorize()
+                return
+            }
         }
 
         const data = await formatFormData(req)

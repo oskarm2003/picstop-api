@@ -1,9 +1,14 @@
 import { dbQuery } from "../database/database_model";
 
 //add new comment to the database
-function addComment(photo_author: string, photo_name: string, comment_author: string, content: string): Promise<'exists' | 'success' | 'not found'> {
+function addComment(photo_author: string, photo_name: string, comment_author: string, content: string): Promise<'exists' | 'success' | 'not found' | 'too long'> {
 
     return new Promise((resolve, reject) => {
+
+        if (content.length > 512) {
+            reject('too long')
+            return
+        }
 
         //check if already exsits
         dbQuery(`SELECT count(id) AS result FROM comments WHERE (photo_id=(SELECT id FROM photos WHERE (photos.author='${photo_author}' and photos.name='${photo_name}')) and author='${comment_author}')`)

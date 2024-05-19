@@ -17,7 +17,7 @@ class Mailer {
 
     //mail templates
     private static templates = {
-        verification: (url: string) => `Click on the link to verify your PHOTOS_API account:\n${url}\n\nLink is active for one hour.\nThis message was send automatically, please do not respond.\nIgnore if you think you should not be the receiver.`,
+        verification: (url: string) => `Click on the link to verify your account:\n${url}\n\nLink is active for one hour.\nThis message was send automatically, please do not respond.\nIgnore if you think you should not be the receiver.`,
         password_change: (url: string) => `You can reset your password with the link below:\n${url}\n\nLink is active for five minutes.\nThis message was send automatically, please do not respond.\nIgnore if you think you should not be the receiver.`
     }
 
@@ -30,7 +30,7 @@ class Mailer {
                 const options = {
                     from: process.env.EMAIL_USER,
                     to: receiver,
-                    subject: 'VERIFY YOUR EMAIL ON PHOTOS_API',
+                    subject: 'Verify your email',
                     text: this.templates.verification(url)
                 }
                 //sending email
@@ -50,7 +50,7 @@ class Mailer {
                 const options = {
                     from: process.env.EMAIL_USER,
                     to: receiver,
-                    subject: "PASSWORD CHANGE REQUEST",
+                    subject: "Password change request",
                     text: this.templates.password_change(url)
                 }
                 //sending email

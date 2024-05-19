@@ -64,7 +64,8 @@ INPUT:
 POSSIBLE OUTCOMES:  
     204 - success   
     400 - error   
-    404 - not found  
+    404 - not found 
+    422 - invalid input
 
 
 Encodes the given email and sends the account verification email to its' address.  
@@ -108,3 +109,13 @@ POSSIBLE OUTCOMES:
 
 
 Changes the forgotten password. User is verified by the token with email.  
+
+# DELETE /user/[user_name]
+
+authentication required via headers (authorization Bearer)
+
+POSSIBLE OUTCOMES:
+204 - no content - success
+401 - authorization failed
+400 - no content
+404 - action not found

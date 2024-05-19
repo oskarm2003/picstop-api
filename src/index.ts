@@ -7,7 +7,7 @@ import commentsController from './controller/comments/comments_controller';
 import photoController from './controller/photo/photo_controller';
 import { readFile } from 'fs';
 import photoSearchController from './controller/photo_search/photo_search_controller';
-import { createDB } from './model/database/database_model'
+import { createDB, dbQuery } from './model/database/database_model'
 require('dotenv').config()
 
 //port number
@@ -33,7 +33,7 @@ export const server = http.createServer((req: IncomingMessage, res: ServerRespon
 
 
     //default headers
-    const trusted = ['http://localhost:5173']
+    const trusted = ['http://localhost:5173', 'http://localhost:4173']
 
     // console.log("ORIGIN:", req.headers.origin);
     for (let el of trusted) {

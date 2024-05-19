@@ -288,9 +288,8 @@ const userController = async (req: IncomingMessage, res: ServerResponse) => {
 
         //authorize the user
         const username = decodeURIComponent(req.url).split('/')[2]
-        if (!authorize(req, res, username)) {
+        if (!authorize(req, res, username))
             return
-        }
 
         //proceed
         Promise.all([
