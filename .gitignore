@@ -3,5 +3,8 @@ node_modules
 package.json
 package-lock.json
 tsconfig.json
-dist
+dist/index.js
+dist/index.js.LICENSE.txt
+dist/index.js/uploads/*
+README.Docker.md
 *.env
