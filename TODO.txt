@@ -1,2 +1,0 @@
-check safety in wireshark
-comments get wywala baze
