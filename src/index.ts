@@ -65,16 +65,22 @@ export const server = http.createServer((req: IncomingMessage, res: ServerRespon
     }
 
     const fragmented_url = req.url?.split('/')
-    console.log("FRAGMENTED URL", fragmented_url);
 
     while (fragmented_url.length != 0 && fragmented_url[0] == "")
         fragmented_url.shift()
 
+
     const direction = fragmented_url[0]
-    console.log("DIRECTION", direction);
+
+
+    if (direction === undefined) {
+        res.statusCode = 404
+        res.end('action not found')
+        return
+    }
 
     //forward to user controller
-    if (direction === 'user') {
+    else if (direction === 'user') {
         userController(req, res)
     }
 
