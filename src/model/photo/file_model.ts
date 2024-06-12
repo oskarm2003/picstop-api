@@ -1,7 +1,7 @@
 import { IncomingMessage } from 'http';
 import { cc } from '../..';
 import { IncomingForm } from 'formidable';
-import { existsSync, readFileSync, renameSync, stat, rmdir, unlink, mkdir, readdir, readFile, mkdirSync } from 'fs'
+import { existsSync, copyFile, readFileSync, renameSync, stat, rmdir, unlink, mkdir, readdir, readFile, mkdirSync, copyFileSync, rmSync } from 'fs'
 import path from 'path';
 import sharp from 'sharp'
 
@@ -117,7 +117,9 @@ function postImage(file_temp_path: string, name: string, author: string | undefi
         }
 
         //move to the desired album
-        renameSync(file_temp_path, new_path)
+        copyFileSync(file_temp_path, new_path)
+        rmSync(file_temp_path)
+
         if (await scaleDown(new_path)) {
             resolve({ ok: true, path: new_path, code: 201 })
             return
