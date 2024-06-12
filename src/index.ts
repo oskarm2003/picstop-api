@@ -64,15 +64,8 @@ export const server = http.createServer((req: IncomingMessage, res: ServerRespon
         return
     }
 
-    const fragmented_url = req.url?.split('/')
-
-    while (fragmented_url.length != 0 && fragmented_url[0] == "")
-        fragmented_url.shift()
-
-    const direction = fragmented_url[0]
-    console.log("req.url", req.url);
-    console.log("DIRECTION", direction);
-
+    req.url = req.url?.replace("//", "/")
+    const direction = req.url?.split('/')[1]
 
     if (direction === undefined) {
         res.statusCode = 404
