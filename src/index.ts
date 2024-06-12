@@ -36,14 +36,11 @@ export const server = http.createServer((req: IncomingMessage, res: ServerRespon
 
 
     //default headers
-    const trusted = ['https://picstop.onrender.com']
-    console.log("trusted origins:", trusted);
-    console.log("req.headers.origin", req.headers.origin);
-
+    const trusted = ['https://picstop.onrender.com',
+        'https://picstop.onrender.com/',]
 
     // console.log("ORIGIN:", req.headers.origin);
     for (let el of trusted) {
-        console.log("IS TRUSTED!");
         if (el === req.headers.origin)
             res.setHeader('Access-Control-Allow-Origin', req.headers.origin)
     }
@@ -67,7 +64,14 @@ export const server = http.createServer((req: IncomingMessage, res: ServerRespon
         return
     }
 
-    const direction = req.url?.split('/')[1]
+    const fragmented_url = req.url?.split('/')
+    console.log("FRAGMENTED URL", fragmented_url);
+
+    while (fragmented_url.length != 0 && fragmented_url[0] == "")
+        fragmented_url.pop()
+
+    const direction = fragmented_url[0]
+    console.log("DIRECTION", direction);
 
     //forward to user controller
     if (direction === 'user') {
