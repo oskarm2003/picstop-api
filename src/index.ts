@@ -69,8 +69,9 @@ export const server = http.createServer((req: IncomingMessage, res: ServerRespon
     while (fragmented_url.length != 0 && fragmented_url[0] == "")
         fragmented_url.shift()
 
-
     const direction = fragmented_url[0]
+    console.log("req.headers.origin", req.headers.origin);
+    console.log("DIRECTION", direction);
 
 
     if (direction === undefined) {
