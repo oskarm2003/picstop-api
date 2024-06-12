@@ -1,10 +1,9 @@
 import { IncomingMessage } from 'http';
 import { cc } from '../..';
 import { IncomingForm } from 'formidable';
-import { existsSync, readFileSync, renameSync, stat, rmdir, unlink, mkdir, readdir, readFile } from 'fs'
+import { existsSync, readFileSync, renameSync, stat, rmdir, unlink, mkdir, readdir, readFile, mkdirSync } from 'fs'
 import path from 'path';
 import sharp from 'sharp'
-
 
 
 //get form data
@@ -43,6 +42,24 @@ function formatFormData(req: IncomingMessage): Promise<{ name: string, file_temp
     })
 }
 
+// helper function
+function verifyUploadsPath() {
+    return new Promise((resolve, reject) => {
+
+        if (!existsSync(global.uploads_path))
+            mkdir(global.uploads_path, (err) => {
+                if (err) {
+                    cc.error("Uploads Path Error: Uploads directory could not be found nor created.");
+                    reject()
+                }
+                else
+                    resolve(true)
+            })
+        else
+            resolve(true)
+    })
+}
+
 //post new image
 type t_post_output = { code: number } &
     ({ ok: true, path: string } |
@@ -50,7 +67,11 @@ type t_post_output = { code: number } &
 
 function postImage(file_temp_path: string, name: string, author: string | undefined): Promise<t_post_output> {
 
-    return new Promise(async (resolve) => {
+    return new Promise(async (resolve, reject) => {
+
+        // check if uploads directory exists
+        verifyUploadsPath()
+            .catch(reject)
 
         //specify upload dir
         let upload_dir: string

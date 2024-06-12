@@ -37,7 +37,10 @@ export const server = http.createServer((req: IncomingMessage, res: ServerRespon
 
     //default headers
     const trusted = ['https://picstop.onrender.com',
-        'https://picstop.onrender.com/',]
+        'https://picstop.onrender.com/',
+        // "http://localhost:5173/",
+        // "http://localhost:5173"
+    ]
 
     // console.log("ORIGIN:", req.headers.origin);
     for (let el of trusted) {
