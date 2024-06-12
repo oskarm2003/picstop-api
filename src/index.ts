@@ -36,10 +36,14 @@ export const server = http.createServer((req: IncomingMessage, res: ServerRespon
 
 
     //default headers
-    const trusted = ['https://picstop.onrender.com/']
+    const trusted = ['https://picstop.onrender.com']
+    console.log("trusted origins:", trusted);
+    console.log("req.headers.origin", req.headers.origin);
+
 
     // console.log("ORIGIN:", req.headers.origin);
     for (let el of trusted) {
+        console.log("IS TRUSTED!");
         if (el === req.headers.origin)
             res.setHeader('Access-Control-Allow-Origin', req.headers.origin)
     }
