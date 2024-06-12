@@ -70,7 +70,7 @@ export const server = http.createServer((req: IncomingMessage, res: ServerRespon
         fragmented_url.shift()
 
     const direction = fragmented_url[0]
-    console.log("req.headers.origin", req.headers.origin);
+    console.log("req.url", req.url);
     console.log("DIRECTION", direction);
 
 
