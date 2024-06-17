@@ -1,7 +1,7 @@
 import { IncomingMessage } from 'http';
 import { cc } from '../..';
 import { IncomingForm } from 'formidable';
-import { existsSync, copyFile, readFileSync, renameSync, stat, rmdir, unlink, mkdir, readdir, readFile, mkdirSync, copyFileSync, rmSync } from 'fs'
+import { existsSync, readFileSync, stat, rmdir, unlink, mkdir, readdir, readFile, mkdirSync, copyFileSync, rmSync } from 'fs'
 import path from 'path';
 import sharp from 'sharp'
 
@@ -115,6 +115,10 @@ function postImage(file_temp_path: string, name: string, author: string | undefi
             resolve({ ok: false, message: 'wrong filename format', code: 422 })
             return
         }
+
+        // create dir if does not exist
+        if (!existsSync(upload_dir))
+            mkdirSync(upload_dir)
 
         //move to the desired album
         copyFileSync(file_temp_path, new_path)
@@ -236,7 +240,7 @@ function getImage(name: string, album: string): Promise<t_get_output> {
 
     return new Promise((resolve) => {
         //find the photo in the album
-        readdir(path.join(global.root_dir, 'dist', 'uploads', album), (err, files) => {
+        readdir(path.join(global.root_dir, 'uploads', album), (err, files) => {
 
             if (err) {
                 cc.error('album not found')
@@ -249,9 +253,9 @@ function getImage(name: string, album: string): Promise<t_get_output> {
 
                 //if found
                 if (file.startsWith(name)) {
-                    // console.log(path.join(global.root_dir, 'dist', 'uploads', album, file));
+                    // console.log(path.join(global.root_dir, 'uploads', album, file));
 
-                    readFile(path.join(global.root_dir, 'dist', 'uploads', album, file), (err, data) => {
+                    readFile(path.join(global.root_dir, 'uploads', album, file), (err, data) => {
 
                         if (err) {
                             cc.error('file not found')
@@ -279,7 +283,7 @@ function deleteImage(album: string, name: string): Promise<true> {
 
         if (album === 'anonymous') album = '_shared'
 
-        readdir(path.join(global.root_dir, 'dist', 'uploads', album), (err, files) => {
+        readdir(path.join(global.root_dir, 'uploads', album), (err, files) => {
 
             if (err) {
                 reject(err)
@@ -288,7 +292,7 @@ function deleteImage(album: string, name: string): Promise<true> {
 
             for (let file of files) {
                 if (file.startsWith(name)) {
-                    removeAsset(path.join(global.root_dir, 'dist', 'uploads', album, file))
+                    removeAsset(path.join(global.root_dir, 'uploads', album, file))
                         .then(() => {
                             cleanUp(album)
                             resolve(true)
@@ -308,7 +312,7 @@ function deleteImage(album: string, name: string): Promise<true> {
 //cleans up all empty albums or single album given in the input if empty
 function cleanUp(album_name?: string): Promise<void> {
 
-    const uploads_path = path.join(global.root_dir, 'dist', 'uploads')
+    const uploads_path = path.join(global.root_dir, 'uploads')
 
     return new Promise((resolve, reject) => {
 

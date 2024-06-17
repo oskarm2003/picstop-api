@@ -11,7 +11,7 @@ import { createDB, dbQuery } from './model/database/database_model'
 require('dotenv').config()
 
 //port number
-const PORT = process.env.APP_PORT
+const PORT = process.env.PORT || 3000
 
 //globals declaration
 declare global {
@@ -20,8 +20,9 @@ declare global {
     var db_name: string
     var server_url: string
 }
+
 global.root_dir = path.join(__dirname, '..')
-global.uploads_path = path.join(root_dir, "dist", "uploads")
+global.uploads_path = path.join(root_dir, "uploads")
 
 if (!process.env.DB_NAME)
     throw new Error("DB_NAME environmental variable not found")
@@ -31,7 +32,6 @@ global.db_name = process.env.DB_NAME
 await createDB(global.db_name)
 
 export const cc = new ColorConsole()
-// cc.omit.push('notify')
 export const server = http.createServer((req: IncomingMessage, res: ServerResponse) => {
 
 
@@ -43,9 +43,18 @@ export const server = http.createServer((req: IncomingMessage, res: ServerRespon
     ]
 
     // console.log("ORIGIN:", req.headers.origin);
+    let is_trusted = false
     for (let el of trusted) {
-        if (el === req.headers.origin)
+        if (el === req.headers.origin) {
+            is_trusted = true
             res.setHeader('Access-Control-Allow-Origin', req.headers.origin)
+        }
+    }
+
+    if (!is_trusted) {
+        res.statusCode = 401
+        res.end("app usage forbidden")
+        return
     }
 
     res.setHeader('Access-Control-Allow-Headers', 'authorization');
@@ -123,7 +132,7 @@ export const server = http.createServer((req: IncomingMessage, res: ServerRespon
 
     else {
         res.statusCode = 404
-        res.end('action not found')
+        res.end('action ' + direction + ' not found')
     }
 
 })
