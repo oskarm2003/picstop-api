@@ -26,6 +26,7 @@ global.uploads_path = path.join(root_dir, "uploads")
 
 if (!process.env.DB_NAME)
     throw new Error("DB_NAME environmental variable not found")
+
 global.db_name = process.env.DB_NAME
 
 //init DB
